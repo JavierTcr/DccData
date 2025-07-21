@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diccionario de Datos - Esquema SPE</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-database"></i>
+                Diccionario de Datos SPE
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text">
+                    <i class="fas fa-calendar"></i>
+                    Generado: <span id="generation-date">21/07/2025</span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3 col-md-4">
+                <div class="sidebar">
+                    <h5 class="mb-3">
+                        <i class="fas fa-list"></i>
+                        Navegación
+                    </h5>
+                    <nav class="nav flex-column">
+                        <button class="nav-link active" onclick="showSection('resumen')">
+                            <i class="fas fa-chart-pie"></i>
+                            Resumen General
+                        </button>
+                        <button class="nav-link" onclick="showSection('tablas')">
+                            <i class="fas fa-table"></i>
+                            Tablas
+                        </button>
+                        <button class="nav-link" onclick="showSection('columnas')">
+                            <i class="fas fa-columns"></i>
+                            Columnas
+                        </button>
+                        <button class="nav-link" onclick="showSection('restricciones')">
+                            <i class="fas fa-key"></i>
+                            Restricciones
+                        </button>
+                        <button class="nav-link" onclick="showSection('indices')">
+                            <i class="fas fa-search"></i>
+                            Índices
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9 col-md-8">
+                <!-- Loading -->
+                <div class="loading" id="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Cargando datos...</p>
+                </div>
+
+                <!-- Resumen Section -->
+                <div id="resumen-section" class="content-section">
+                    <div class="info-box">
+                        <h4><i class="fas fa-info-circle"></i> Esquema SPE - Sistema de Información</h4>
+                        <p>Diccionario de datos completo del esquema SPE con información detallada de estructura de base de datos. 
+                           Esta documentación incluye tablas, columnas, restricciones e índices con funcionalidades de búsqueda y filtrado.</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3 col-sm-6">
+                            <div class="stats-card" onclick="showSection('tablas')">
+                                <i class="fas fa-table"></i>
+                                <h3 id="total-tablas">Cargando...</h3>
+                                <p>Tablas</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="stats-card" onclick="showSection('columnas')">
+                                <i class="fas fa-columns"></i>
+                                <h3 id="total-columnas">Cargando...</h3>
+                                <p>Columnas</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="stats-card" onclick="showSection('restricciones')">
+                                <i class="fas fa-key"></i>
+                                <h3 id="total-restricciones">Cargando...</h3>
+                                <p>Restricciones</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="stats-card" onclick="showSection('indices')">
+                                <i class="fas fa-search"></i>
+                                <h3 id="total-indices">Cargando...</h3>
+                                <p>Índices</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <h5><i class="fas fa-info-circle"></i> Información del Sistema</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Esquema:</strong> SPE</p>
+                                <p><strong>Base de datos:</strong> Oracle</p>
+                                <p><strong>Fecha extracción:</strong> 21 de julio, 2025</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Tiempo de procesamiento:</strong> ~5.24 segundos</p>
+                                <p><strong>Tablas temporales excluidas:</strong> 84</p>
+                                <p><strong>Estado:</strong> Activo y actualizado</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tablas Section -->
+                <div id="tablas-section" class="content-section" style="display: none;">
+                    <div class="main-content">
+                        <h2 class="section-title">
+                            <i class="fas fa-table"></i>
+                            Información de Tablas
+                        </h2>
+                        
+                        <div class="search-container">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control search-input" id="tabla-search" 
+                                           placeholder="🔍 Buscar tablas por nombre...">
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="export-buttons">
+                                        <button class="btn btn-primary btn-export" onclick="exportData('tablas', 'csv')">
+                                            <i class="fas fa-download"></i> Exportar CSV
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="table data-table" id="tablas-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tabla</th>
+                                        <th>Núm. Filas</th>
+                                        <th>Tablespace</th>
+                                        <th>Estado</th>
+                                        <th>Último Análisis</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablas-tbody">
+                                    <tr><td colspan="6" class="text-center">Cargando datos...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-container">
+                            <nav>
+                                <ul class="pagination" id="tablas-pagination"></ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columnas Section -->
+                <div id="columnas-section" class="content-section" style="display: none;">
+                    <div class="main-content">
+                        <h2 class="section-title">
+                            <i class="fas fa-columns"></i>
+                            Información de Columnas
+                        </h2>
+                        
+                        <div class="search-container">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control search-input" id="columna-search" 
+                                           placeholder="🔍 Buscar columnas por nombre...">
+                                </div>
+                                <div class="col-md-6">
+                                    <select class="form-control search-input" id="tabla-filter">
+                                        <option value="">Todas las tablas...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="table data-table" id="columnas-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tabla</th>
+                                        <th>Columna</th>
+                                        <th>Tipo Completo</th>
+                                        <th>Permite Nulos</th>
+                                        <th>Posición</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="columnas-tbody">
+                                    <tr><td colspan="5" class="text-center">Cargando datos...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-container">
+                            <nav>
+                                <ul class="pagination" id="columnas-pagination"></ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Restricciones Section -->
+                <div id="restricciones-section" class="content-section" style="display: none;">
+                    <div class="main-content">
+                        <h2 class="section-title">
+                            <i class="fas fa-key"></i>
+                            Restricciones
+                        </h2>
+                        
+                        <div class="search-container">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control search-input" id="restriccion-search" 
+                                           placeholder="🔍 Buscar restricciones por nombre...">
+                                </div>
+                                <div class="col-md-6">
+                                    <select class="form-control search-input" id="tipo-restriccion-filter">
+                                        <option value="">Todos los tipos...</option>
+                                        <option value="PRIMARY KEY">Primary Key</option>
+                                        <option value="FOREIGN KEY">Foreign Key</option>
+                                        <option value="UNIQUE">Unique</option>
+                                        <option value="CHECK">Check</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="table data-table" id="restricciones-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tabla</th>
+                                        <th>Restricción</th>
+                                        <th>Tipo</th>
+                                        <th>Estado</th>
+                                        <th>Columnas</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="restricciones-tbody">
+                                    <tr><td colspan="5" class="text-center">Cargando datos...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-container">
+                            <nav>
+                                <ul class="pagination" id="restricciones-pagination"></ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Índices Section -->
+                <div id="indices-section" class="content-section" style="display: none;">
+                    <div class="main-content">
+                        <h2 class="section-title">
+                            <i class="fas fa-search"></i>
+                            Índices
+                        </h2>
+                        
+                        <div class="search-container">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control search-input" id="indice-search" 
+                                           placeholder="🔍 Buscar índices por nombre...">
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-control search-input" id="unicidad-filter">
+                                        <option value="">Filtrar por unicidad...</option>
+                                        <option value="UNIQUE">Único</option>
+                                        <option value="NONUNIQUE">No Único</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="table data-table" id="indices-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tabla</th>
+                                        <th>Índice</th>
+                                        <th>Tipo</th>
+                                        <th>Unicidad</th>
+                                        <th>Estado</th>
+                                        <th>Columnas</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="indices-tbody">
+                                    <tr><td colspan="6" class="text-center">Cargando datos...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination-container">
+                            <nav>
+                                <ul class="pagination" id="indices-pagination"></ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/script_fixed.js"></script>
+</body>
+</html>

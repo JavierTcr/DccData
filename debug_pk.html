@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Primary Keys - DEMANDA</title>
+    <style>
+        body { font-family: monospace; margin: 20px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; border-left: 4px solid #007bff; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .warning { color: orange; font-weight: bold; }
+        table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug de Primary Keys - Tabla DEMANDA</h1>
+    <div id="output"></div>
+
+    <script>
+        async function debugPrimaryKeys() {
+            const output = document.getElementById('output');
+            
+            try {
+                output.innerHTML += `<div class="debug">📥 Cargando datos de restricciones...</div>`;
+                
+                // Cargar datos de restricciones
+                const restResponse = await fetch('data/restricciones_spe_20250721_130849.csv');
+                const restText = await restResponse.text();
+                
+                // Parsear CSV de restricciones
+                const restLines = restText.split('\n').filter(line => line.trim());
+                const restHeaders = restLines[0].split(',');
+                output.innerHTML += `<div class="debug">📋 Headers de restricciones: ${restHeaders.join(', ')}</div>`;
+                
+                const restricciones = [];
+                for (let i = 1; i < restLines.length; i++) {
+                    const values = restLines[i].split(',');
+                    if (values.length === restHeaders.length) {
+                        const row = {};
+                        restHeaders.forEach((header, index) => {
+                            row[header] = values[index]?.trim() || '';
+                        });
+                        restricciones.push(row);
+                    }
+                }
+                
+                output.innerHTML += `<div class="debug">✅ Total restricciones cargadas: ${restricciones.length}</div>`;
+                
+                // Filtrar Primary Keys
+                const allPKs = restricciones.filter(r => r.TIPO === 'P');
+                output.innerHTML += `<div class="debug">🔑 Total Primary Keys encontradas: ${allPKs.length}</div>`;
+                
+                // Filtrar restricciones de DEMANDA
+                const demandaRestrictions = restricciones.filter(r => r.TABLA === 'DEMANDA');
+                const demandaPKs = demandaRestrictions.filter(r => r.TIPO === 'P');
+                
+                output.innerHTML += `<div class="debug">
+                    <strong>📊 Restricciones de DEMANDA:</strong><br>
+                    - Total restricciones: ${demandaRestrictions.length}<br>
+                    - Primary Keys: ${demandaPKs.length}<br>
+                    - Foreign Keys: ${demandaRestrictions.filter(r => r.TIPO === 'R').length}<br>
+                    - Check constraints: ${demandaRestrictions.filter(r => r.TIPO === 'C').length}<br>
+                    - Unique constraints: ${demandaRestrictions.filter(r => r.TIPO === 'U').length}
+                </div>`;
+                
+                if (demandaPKs.length > 0) {
+                    output.innerHTML += `<div class="success">✅ Primary Keys de DEMANDA encontradas:</div>`;
+                    output.innerHTML += `<table>
+                        <tr><th>Nombre Restricción</th><th>Tipo</th><th>Columnas</th><th>Estado</th></tr>
+                        ${demandaPKs.map(pk => `
+                            <tr>
+                                <td>${pk.NOMBRE_RESTRICCION}</td>
+                                <td>${pk.TIPO} (${pk.TIPO_DESCRIPCION})</td>
+                                <td><strong>${pk.COLUMNAS}</strong></td>
+                                <td>${pk.ESTADO}</td>
+                            </tr>
+                        `).join('')}
+                    </table>`;
+                } else {
+                    output.innerHTML += `<div class="error">❌ No se encontraron Primary Keys para DEMANDA</div>`;
+                }
+                
+                // Cargar columnas de DEMANDA
+                output.innerHTML += `<div class="debug">📥 Cargando columnas de DEMANDA...</div>`;
+                
+                const colResponse = await fetch('data/columnas_spe_20250721_130849.csv');
+                const colText = await colResponse.text();
+                const colLines = colText.split('\n').filter(line => line.trim());
+                const colHeaders = colLines[0].split(',');
+                
+                const columnas = [];
+                for (let i = 1; i < colLines.length; i++) {
+                    const values = colLines[i].split(',');
+                    if (values.length === colHeaders.length) {
+                        const row = {};
+                        colHeaders.forEach((header, index) => {
+                            row[header] = values[index]?.trim() || '';
+                        });
+                        columnas.push(row);
+                    }
+                }
+                
+                const demandaColumns = columnas.filter(c => c.TABLA === 'DEMANDA');
+                output.innerHTML += `<div class="debug">📋 Columnas de DEMANDA encontradas: ${demandaColumns.length}</div>`;
+                
+                // Buscar DEM_ID específicamente
+                const demIdColumn = demandaColumns.find(col => col.COLUMNA === 'DEM_ID');
+                if (demIdColumn) {
+                    output.innerHTML += `<div class="success">✅ Columna DEM_ID encontrada: ${demIdColumn.TIPO_COMPLETO}</div>`;
+                } else {
+                    output.innerHTML += `<div class="error">❌ Columna DEM_ID NO encontrada</div>`;
+                }
+                
+                // Crear mapa de PKs como lo hace el código principal
+                const pkMap = new Map();
+                demandaPKs.forEach(pk => {
+                    const columns = (pk.COLUMNAS || '').split(',').map(c => c.trim().toUpperCase());
+                    columns.forEach(col => {
+                        if (col) {
+                            pkMap.set(col, pk);
+                        }
+                    });
+                });
+                
+                output.innerHTML += `<div class="debug">
+                    <strong>🗺️ Mapa de Primary Keys creado:</strong><br>
+                    - Entradas en el mapa: ${pkMap.size}<br>
+                    - Claves: ${Array.from(pkMap.keys()).join(', ')}
+                </div>`;
+                
+                // Verificar DEM_ID en el mapa
+                const demIdInMap = pkMap.has('DEM_ID');
+                output.innerHTML += `<div class="${demIdInMap ? 'success' : 'error'}">
+                    ${demIdInMap ? '✅' : '❌'} ¿DEM_ID está en el mapa de PKs?: ${demIdInMap ? 'SÍ' : 'NO'}
+                </div>`;
+                
+                if (demIdInMap) {
+                    const pkInfo = pkMap.get('DEM_ID');
+                    output.innerHTML += `<div class="success">
+                        🎯 Información de PK para DEM_ID:<br>
+                        - Restricción: ${pkInfo.NOMBRE_RESTRICCION}<br>
+                        - Tipo: ${pkInfo.TIPO}<br>
+                        - Columnas: ${pkInfo.COLUMNAS}<br>
+                        - Estado: ${pkInfo.ESTADO}
+                    </div>`;
+                }
+                
+            } catch (error) {
+                output.innerHTML += `<div class="error">💥 Error: ${error.message}</div>`;
+                console.error('Error en debug:', error);
+            }
+        }
+        
+        // Ejecutar debug al cargar
+        debugPrimaryKeys();
+    </script>
+</body>
+</html>
