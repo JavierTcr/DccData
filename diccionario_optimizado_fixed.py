@@ -1,8 +1,8 @@
-import cx_Oracle
+import cx_Oracle # type: ignore
 import os
 import csv
 import time
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 from datetime import datetime
 
 # Cargar variables de entorno
@@ -90,7 +90,7 @@ class OptimizedDataDictionaryExtractor:
         cursor = self.connection.cursor()
         cursor.execute(query, schema_name=self.schema_name)
         
-        with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+        with open(filename, 'w', newline='', encoding='utf-8-sig') as csvfile:
             fieldnames = ['TABLA', 'NUM_FILAS', 'BLOQUES', 'BLOQUES_VACIOS', 
                          'LONGITUD_PROMEDIO_FILA', 'TABLESPACE', 'ESTADO', 
                          'ULTIMO_ANALISIS', 'GRADO', 'COMPRESION']
@@ -123,7 +123,6 @@ class OptimizedDataDictionaryExtractor:
         """Extraer información de columnas a CSV de forma optimizada"""
         print("📋 Extrayendo información de columnas...")
         
-        # Consulta optimizada sin joins complejos
         query = """
         SELECT 
             c.TABLE_NAME,
@@ -150,7 +149,7 @@ class OptimizedDataDictionaryExtractor:
         cursor = self.connection.cursor()
         cursor.execute(query, schema_name=self.schema_name)
         
-        with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+        with open(filename, 'w', newline='', encoding='utf-8-sig') as csvfile:
             fieldnames = ['TABLA', 'COLUMNA', 'TIPO_DATO', 'TIPO_COMPLETO', 
                          'LONGITUD', 'PRECISION', 'ESCALA', 'PERMITE_NULOS', 
                          'POSICION', 'VALOR_DEFAULT']
@@ -189,7 +188,7 @@ class OptimizedDataDictionaryExtractor:
                     'ESCALA': row[5] or '',
                     'PERMITE_NULOS': row[6],
                     'POSICION': row[7],
-                    'VALOR_DEFAULT': str(row[9])[:100] if row[9] else ''  # Truncar defaults largos
+                    'VALOR_DEFAULT': str(row[9])[:100] if row[9] else ''
                 })
                 count += 1
         
@@ -236,7 +235,7 @@ class OptimizedDataDictionaryExtractor:
         cursor = self.connection.cursor()
         cursor.execute(query, schema_name=self.schema_name)
         
-        with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+        with open(filename, 'w', newline='', encoding='utf-8-sig') as csvfile:
             fieldnames = ['TABLA', 'NOMBRE_RESTRICCION', 'TIPO', 'TIPO_DESCRIPCION', 
                          'ESTADO', 'DIFERIBLE', 'DIFERIDO', 'REFERENCIA', 'COLUMNAS']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -295,7 +294,7 @@ class OptimizedDataDictionaryExtractor:
         cursor = self.connection.cursor()
         cursor.execute(query, schema_name=self.schema_name)
         
-        with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+        with open(filename, 'w', newline='', encoding='utf-8-sig') as csvfile:
             fieldnames = ['TABLA', 'NOMBRE_INDICE', 'TIPO_INDICE', 'UNICIDAD', 
                          'ESTADO', 'GRADO', 'COMPRESION', 'COLUMNAS']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -323,7 +322,7 @@ class OptimizedDataDictionaryExtractor:
     
     def create_summary_csv(self, stats, filename="resumen_esquema.csv"):
         """Crear archivo de resumen"""
-        with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+        with open(filename, 'w', newline='', encoding='utf-8-sig') as csvfile:
             fieldnames = ['METRICA', 'VALOR']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
@@ -360,10 +359,10 @@ class OptimizedDataDictionaryExtractor:
             # Extraer cada tipo de información
             stats = {
                 'temp_excluidas': temp_tables,
-                'tablas': self.extract_tables_info_csv(f"tablas_spe_{timestamp}.csv"),
-                'columnas': self.extract_columns_info_csv(f"columnas_spe_{timestamp}.csv"),
-                'restricciones': self.extract_constraints_info_csv(f"restricciones_spe_{timestamp}.csv"),
-                'indices': self.extract_indexes_info_csv(f"indices_spe_{timestamp}.csv")
+                'tablas': self.extract_tables_info_csv(f"data/tablas_spe_{timestamp}.csv"),
+                'columnas': self.extract_columns_info_csv(f"data/columnas_spe_{timestamp}.csv"),
+                'restricciones': self.extract_constraints_info_csv(f"data/restricciones_spe_{timestamp}.csv"),
+                'indices': self.extract_indexes_info_csv(f"data/indices_spe_{timestamp}.csv")
             }
             
             # Calcular tiempo total
@@ -371,13 +370,13 @@ class OptimizedDataDictionaryExtractor:
             stats['tiempo_total'] = end_time - self.start_time
             
             # Crear resumen
-            self.create_summary_csv(stats, f"resumen_spe_{timestamp}.csv")
+            self.create_summary_csv(stats, f"data/resumen_spe_{timestamp}.csv")
             
             self.disconnect()
             
             print("=" * 60)
             print(f"🎉 EXTRACCIÓN COMPLETADA EN {stats['tiempo_total']:.2f} SEGUNDOS")
-            print(f"📁 Archivos generados:")
+            print(f"📁 Archivos generados en la carpeta data/:")
             print(f"   📊 tablas_spe_{timestamp}.csv")
             print(f"   📋 columnas_spe_{timestamp}.csv")
             print(f"   🔗 restricciones_spe_{timestamp}.csv")
@@ -395,7 +394,7 @@ class OptimizedDataDictionaryExtractor:
 if __name__ == "__main__":
     print("🔍 Iniciando extracción optimizada del esquema SPE")
     print("⚡ Versión optimizada para mayor velocidad")
-    print("📁 Generando archivos CSV separados")
+    print("📁 Generando archivos CSV separados con codificación UTF-8")
     
     try:
         extractor = OptimizedDataDictionaryExtractor("SPE")

@@ -62,8 +62,9 @@ class DiccionarioDatos {
         try {
             console.log('Intentando cargar datos desde CSV...');
             
-            // Usar el timestamp más reciente
-            const timestamp = '20250721_130849';
+            // Detectar automáticamente el timestamp más reciente
+            const timestamp = await this.detectLatestTimestamp();
+            console.log('Timestamp detectado:', timestamp);
             
             const [tablasData, columnasData, restriccionesData, indicesData] = await Promise.all([
                 this.loadCSV(`data/tablas_spe_${timestamp}.csv`).catch(() => []),
@@ -123,6 +124,35 @@ class DiccionarioDatos {
         }
     }
 
+    async detectLatestTimestamp() {
+        // Lista de timestamps conocidos en orden descendente (más reciente primero)
+        const knownTimestamps = [
+            '20250827_171054',
+            '20250827_170821',
+            '20250827_170313', 
+            '20250827_144418',
+            '20250721_130849'
+        ];
+        
+        // Intentar cada timestamp hasta encontrar uno que funcione
+        for (const timestamp of knownTimestamps) {
+            try {
+                const response = await fetch(`data/tablas_spe_${timestamp}.csv`);
+                if (response.ok) {
+                    console.log(`Timestamp válido encontrado: ${timestamp}`);
+                    return timestamp;
+                }
+            } catch (error) {
+                // Continuar con el siguiente timestamp
+                console.log(`Timestamp ${timestamp} no disponible`);
+            }
+        }
+        
+        // Si ningún timestamp funciona, usar el más reciente como fallback
+        console.warn('No se encontraron archivos CSV válidos, usando timestamp por defecto');
+        return '20250827_171054';
+    }
+
     async loadCSV(filename) {
         try {
             console.log(`Intentando cargar: ${filename}`);
@@ -130,7 +160,19 @@ class DiccionarioDatos {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const text = await response.text();
+            
+            // Leer como array buffer primero para manejar mejor la codificación
+            const arrayBuffer = await response.arrayBuffer();
+            const decoder = new TextDecoder('utf-8');
+            let text = decoder.decode(arrayBuffer);
+            
+            // Si detectamos caracteres mal codificados, intentar con latin1
+            if (text.includes('Ã¡') || text.includes('Ã³') || text.includes('Ã©')) {
+                console.log('Detectada codificación incorrecta, intentando con latin1...');
+                const latin1Decoder = new TextDecoder('latin1');
+                text = latin1Decoder.decode(arrayBuffer);
+            }
+            
             const parsed = this.parseCSV(text);
             console.log(`Archivo ${filename} cargado exitosamente: ${parsed.length} registros`);
             return parsed;
@@ -141,6 +183,9 @@ class DiccionarioDatos {
     }
 
     parseCSV(text) {
+        // Limpiar texto de problemas de codificación comunes
+        text = this.fixEncodingIssues(text);
+        
         const lines = text.split('\n').filter(line => line.trim());
         if (lines.length === 0) return [];
         
@@ -198,6 +243,26 @@ class DiccionarioDatos {
             }
             return field;
         });
+    }
+
+    fixEncodingIssues(text) {
+        // Corregir problemas comunes de codificación UTF-8 mal interpretada
+        // Usar códigos de escape para evitar problemas de codificación en el editor
+        return text
+            .replace(/Ã¡/g, 'á')
+            .replace(/Ã©/g, 'é')
+            .replace(/Ã­/g, 'í')
+            .replace(/Ã³/g, 'ó')
+            .replace(/Ãº/g, 'ú')
+            .replace(/Ã±/g, 'ñ')
+            .replace(/Ã\u0081/g, 'Á')
+            .replace(/Ã‰/g, 'É')
+            .replace(/Ã\u008D/g, 'Í')
+            .replace(/Ã"/g, 'Ó')
+            .replace(/Ãš/g, 'Ú')
+            .replace(/Ã'/g, 'Ñ')
+            .replace(/Ã¼/g, 'ü')
+            .replace(/Ã‡/g, 'Ç');
     }
 
     createOptimizedIndexes() {
@@ -748,12 +813,25 @@ class DiccionarioDatos {
         }
 
         const headers = Object.keys(data[0]);
+        console.log('Headers para CSV:', headers); // Debug
+        
         const csvContent = [
-            headers.join(','),
-            ...data.map(row => headers.map(header => `"${row[header] || ''}"`).join(','))
-        ].join('\n');
+            headers.join(';'), // Usar punto y coma para mejor compatibilidad con Excel en español
+            ...data.map(row => headers.map(header => {
+                let value = (row[header] || '').toString();
+                // Escapar comillas duplicándolas y encerrar en comillas si contiene punto y coma o comillas
+                if (value.includes(';') || value.includes('"') || value.includes('\n')) {
+                    value = `"${value.replace(/"/g, '""')}"`;
+                }
+                return value;
+            }).join(';'))
+        ].join('\r\n'); // Usar CRLF para Windows
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        console.log('Primeras 200 chars del CSV:', csvContent.substring(0, 200)); // Debug
+
+        // Agregar BOM para UTF-8 para mejor compatibilidad con Excel
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         
@@ -764,6 +842,7 @@ class DiccionarioDatos {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     }
 
     showTableDetails(tableName) {
@@ -1277,11 +1356,8 @@ class DiccionarioDatos {
                         </div>
                         <div class="modal-body">
                             <div class="mb-3">
-                                <button class="btn btn-success me-2" onclick="diccionario.downloadTableDetails('${tableName}')">
+                                <button class="btn btn-success" onclick="diccionario.downloadTableDetails('${tableName}')">
                                     <i class="fas fa-download"></i> Descargar CSV
-                                </button>
-                                <button class="btn btn-info" onclick="diccionario.downloadTableDetailsExcel('${tableName}')">
-                                    <i class="fas fa-file-excel"></i> Descargar Excel
                                 </button>
                             </div>
                             <div class="table-responsive">
@@ -1354,37 +1430,6 @@ class DiccionarioDatos {
         const filename = `detalles_${tableName}_${new Date().toISOString().slice(0, 10)}.csv`;
         this.exportToCSV(tableData, filename);
     }
-
-    downloadTableDetailsExcel(tableName) {
-        // Para Excel, usaremos el mismo CSV pero con extensión xlsx
-        const tableData = this.getTableDetailsData(tableName);
-        
-        if (tableData.length === 0) {
-            alert('No hay datos para exportar de esta tabla');
-            return;
-        }
-
-        const filename = `detalles_${tableName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-        
-        // Crear contenido CSV mejorado para Excel
-        const headers = Object.keys(tableData[0]);
-        const csvContent = [
-            headers.join('\t'), // Usar tabs para mejor compatibilidad con Excel
-            ...tableData.map(row => headers.map(header => `"${row[header] || ''}"`).join('\t'))
-        ].join('\n');
-
-        const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.style.visibility = 'hidden';
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
 }
 
 // Funciones globales
@@ -1409,12 +1454,6 @@ function showTableDetails(tableName) {
 function downloadTableDetails(tableName) {
     if (window.diccionario) {
         window.diccionario.downloadTableDetails(tableName);
-    }
-}
-
-function downloadTableDetailsExcel(tableName) {
-    if (window.diccionario) {
-        window.diccionario.downloadTableDetailsExcel(tableName);
     }
 }
 

@@ -96,8 +96,8 @@ class DiccionarioDatos {
     }
 
     detectTimestamp() {
-        // Timestamp del archivo generado
-        return '20250721_114257';
+        // Timestamp del archivo generado más reciente
+        return '20250827_144418';
     }
 
     async loadCSV(filename) {
@@ -402,7 +402,7 @@ class DiccionarioDatos {
         if (!tbody) return;
 
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="no-data"><i class="fas fa-search"></i><br>No se encontraron resultados</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="no-data"><i class="fas fa-search"></i><br>No se encontraron resultados</td></tr>';
             if (pagination) pagination.innerHTML = '';
             return;
         }
@@ -422,6 +422,16 @@ class DiccionarioDatos {
                 <td><span class="badge badge-custom" style="background-color: #6c757d;">${row.TABLESPACE || 'N/A'}</span></td>
                 <td><span class="badge badge-custom ${row.ESTADO === 'VALID' ? 'bg-success' : 'bg-warning'}">${row.ESTADO || 'N/A'}</span></td>
                 <td>${this.formatDate(row.ULTIMO_ANALISIS)}</td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-info" onclick="downloadTableDetails('${row.TABLA}')" title="Descargar detalles CSV">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="downloadTableDetailsExcel('${row.TABLA}')" title="Descargar detalles Excel">
+                            <i class="fas fa-file-excel"></i>
+                        </button>
+                    </div>
+                </td>
             `;
             tbody.appendChild(tr);
         });
@@ -616,6 +626,8 @@ class DiccionarioDatos {
         
         if (format === 'csv') {
             this.exportToCSV(data, `${section}_filtrado.csv`);
+        } else if (format === 'excel') {
+            this.exportToExcel(data, `${section}_filtrado.xls`);
         }
     }
 
@@ -627,11 +639,20 @@ class DiccionarioDatos {
 
         const headers = Object.keys(data[0]);
         const csvContent = [
-            headers.join(','),
-            ...data.map(row => headers.map(header => `"${row[header] || ''}"`).join(','))
-        ].join('\n');
+            headers.join(','), // Usar coma estándar para CSV
+            ...data.map(row => headers.map(header => {
+                let value = (row[header] || '').toString();
+                // Escapar comillas duplicándolas y encerrar en comillas si contiene coma o comillas
+                if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                    value = `"${value.replace(/"/g, '""')}"`;
+                }
+                return value;
+            }).join(','))
+        ].join('\r\n'); // Usar CRLF para Windows
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        // Agregar BOM para UTF-8 para mejor compatibilidad con Excel
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         
@@ -642,6 +663,143 @@ class DiccionarioDatos {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    exportToExcel(data, filename) {
+        if (data.length === 0) {
+            alert('No hay datos para exportar');
+            return;
+        }
+
+        // Crear archivo Excel usando formato HTML con encoding
+        const headers = Object.keys(data[0]);
+        let htmlContent = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+              xmlns:x="urn:schemas-microsoft-com:office:excel" 
+              xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+            <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">
+            <style>
+                .text { mso-number-format:"\\@"; }
+                .number { mso-number-format:"0"; }
+            </style>
+        </head>
+        <body>
+        <table border="1">
+            <tr>`;
+        
+        // Agregar encabezados
+        headers.forEach(header => {
+            htmlContent += `<th style="background-color: #4CAF50; color: white; font-weight: bold;">${header}</th>`;
+        });
+        htmlContent += '</tr>';
+        
+        // Agregar datos
+        data.forEach(row => {
+            htmlContent += '<tr>';
+            headers.forEach(header => {
+                const value = row[header] || '';
+                const className = isNaN(value) ? 'text' : 'number';
+                htmlContent += `<td class="${className}">${value}</td>`;
+            });
+            htmlContent += '</tr>';
+        });
+        
+        htmlContent += '</table></body></html>';
+        
+        // Agregar BOM para UTF-8
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + htmlContent], { 
+            type: 'application/vnd.ms-excel;charset=utf-8' 
+        });
+        
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    downloadTableDetails(tableName) {
+        const tableData = this.getTableDetailsData(tableName);
+        
+        if (tableData.length === 0) {
+            alert('No hay datos para exportar de esta tabla');
+            return;
+        }
+
+        const filename = `detalles_${tableName}_${new Date().toISOString().slice(0, 10)}.csv`;
+        this.exportToCSV(tableData, filename);
+    }
+
+    downloadTableDetailsExcel(tableName) {
+        const tableData = this.getTableDetailsData(tableName);
+        
+        if (tableData.length === 0) {
+            alert('No hay datos para exportar de esta tabla');
+            return;
+        }
+
+        const filename = `detalles_${tableName}_${new Date().toISOString().slice(0, 10)}.xls`;
+        this.exportToExcel(tableData, filename);
+    }
+
+    getTableDetailsData(tableName) {
+        // Obtener datos combinados de la tabla específica
+        const tableData = [];
+        
+        // Agregar información de la tabla
+        const tablaInfo = this.data.tablas.find(t => t.TABLA === tableName);
+        if (tablaInfo) {
+            tableData.push({
+                Tipo: 'TABLA',
+                Nombre: tableName,
+                Descripcion: `Filas: ${tablaInfo.NUM_FILAS || 0}, Tablespace: ${tablaInfo.TABLESPACE || 'N/A'}`,
+                Estado: tablaInfo.ESTADO || 'N/A'
+            });
+        }
+        
+        // Agregar columnas
+        const columnas = this.data.columnas.filter(c => c.TABLA === tableName);
+        columnas.forEach(col => {
+            tableData.push({
+                Tipo: 'COLUMNA',
+                Nombre: col.COLUMNA,
+                Descripcion: `Tipo: ${col.TIPO_COMPLETO}, Nulos: ${col.PERMITE_NULOS}`,
+                Estado: `Posición: ${col.POSICION}`
+            });
+        });
+        
+        // Agregar restricciones
+        const restricciones = this.data.restricciones.filter(r => r.TABLA === tableName);
+        restricciones.forEach(rest => {
+            tableData.push({
+                Tipo: 'RESTRICCION',
+                Nombre: rest.NOMBRE_RESTRICCION,
+                Descripcion: `Tipo: ${rest.TIPO_DESCRIPCION}, Columnas: ${rest.COLUMNAS}`,
+                Estado: rest.ESTADO
+            });
+        });
+        
+        // Agregar índices
+        const indices = this.data.indices.filter(i => i.TABLA === tableName);
+        indices.forEach(idx => {
+            tableData.push({
+                Tipo: 'INDICE',
+                Nombre: idx.NOMBRE_INDICE,
+                Descripcion: `Tipo: ${idx.TIPO_INDICE}, Columnas: ${idx.COLUMNAS}`,
+                Estado: `${idx.UNICIDAD} - ${idx.ESTADO}`
+            });
+        });
+        
+        return tableData;
     }
 }
 
@@ -655,6 +813,18 @@ function showSection(section) {
 function exportData(section, format) {
     if (window.diccionario) {
         window.diccionario.exportData(section, format);
+    }
+}
+
+function downloadTableDetails(tableName) {
+    if (window.diccionario) {
+        window.diccionario.downloadTableDetails(tableName);
+    }
+}
+
+function downloadTableDetailsExcel(tableName) {
+    if (window.diccionario) {
+        window.diccionario.downloadTableDetailsExcel(tableName);
     }
 }
 
