@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Checkboxes</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .selected-row {
+            background-color: rgba(52, 152, 219, 0.1) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Test de Checkboxes</h1>
+        
+        <div class="mb-3">
+            <button class="btn btn-primary" onclick="exportData()">CSV Todas</button>
+            <button class="btn btn-success" id="export-selected-btn" onclick="exportSelected()" disabled>
+                CSV Seleccionadas (<span id="selected-count">0</span>)
+            </button>
+            <button class="btn btn-warning" onclick="clearAll()">Limpiar</button>
+        </div>
+        
+        <div class="mb-2">
+            <input type="checkbox" id="select-all" onchange="toggleAll(this.checked)">
+            <label for="select-all">Seleccionar todas</label>
+        </div>
+        
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" onchange="toggleAll(this.checked)"></th>
+                    <th>Tabla</th>
+                    <th>Filas</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Se llenará con JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let selectedTables = new Set();
+        let tablesData = [
+            {TABLA: 'USUARIOS', NUM_FILAS: '1500'},
+            {TABLA: 'PRODUCTOS', NUM_FILAS: '2300'},
+            {TABLA: 'PEDIDOS', NUM_FILAS: '5600'},
+            {TABLA: 'CLIENTES', NUM_FILAS: '890'},
+            {TABLA: 'CATEGORIAS', NUM_FILAS: '45'}
+        ];
+
+        function renderTable() {
+            console.log('Renderizando tabla...');
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            tablesData.forEach((table, index) => {
+                const row = document.createElement('tr');
+                const isSelected = selectedTables.has(table.TABLA);
+                
+                row.innerHTML = `
+                    <td>
+                        <input type="checkbox" class="table-checkbox" 
+                               data-table-name="${table.TABLA}"
+                               ${isSelected ? 'checked' : ''}
+                               onchange="updateSelection()">
+                    </td>
+                    <td>${table.TABLA}</td>
+                    <td>${table.NUM_FILAS}</td>
+                `;
+                
+                if (isSelected) {
+                    row.classList.add('selected-row');
+                }
+                
+                tbody.appendChild(row);
+            });
+            
+            updateUI();
+        }
+
+        function updateSelection() {
+            console.log('Actualizando selección...');
+            const checkboxes = document.querySelectorAll('.table-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                const tableName = checkbox.getAttribute('data-table-name');
+                const row = checkbox.closest('tr');
+                
+                if (checkbox.checked) {
+                    selectedTables.add(tableName);
+                    row.classList.add('selected-row');
+                } else {
+                    selectedTables.delete(tableName);
+                    row.classList.remove('selected-row');
+                }
+            });
+            
+            updateUI();
+        }
+
+        function updateUI() {
+            const count = selectedTables.size;
+            document.getElementById('selected-count').textContent = count;
+            document.getElementById('export-selected-btn').disabled = count === 0;
+            
+            const checkboxes = document.querySelectorAll('.table-checkbox');
+            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const selectAll = document.getElementById('select-all');
+            
+            selectAll.checked = checkboxes.length > 0 && checkedCount === checkboxes.length;
+            selectAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+        }
+
+        function toggleAll(checked) {
+            console.log('Toggle all:', checked);
+            const checkboxes = document.querySelectorAll('.table-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = checked;
+                const tableName = checkbox.getAttribute('data-table-name');
+                const row = checkbox.closest('tr');
+                
+                if (checked) {
+                    selectedTables.add(tableName);
+                    row.classList.add('selected-row');
+                } else {
+                    selectedTables.delete(tableName);
+                    row.classList.remove('selected-row');
+                }
+            });
+            
+            updateUI();
+        }
+
+        function exportData() {
+            alert('Exportando todas las tablas: ' + tablesData.length);
+        }
+
+        function exportSelected() {
+            alert('Exportando tablas seleccionadas: ' + Array.from(selectedTables).join(', '));
+        }
+
+        function clearAll() {
+            selectedTables.clear();
+            const checkboxes = document.querySelectorAll('.table-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+                checkbox.closest('tr').classList.remove('selected-row');
+            });
+            updateUI();
+        }
+
+        // Inicializar
+        renderTable();
+    </script>
+</body>
+</html>

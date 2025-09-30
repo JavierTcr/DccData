@@ -403,13 +403,10 @@
                                 <div class="col-md-6">
                                     <div class="export-buttons">
                                         <button class="btn btn-primary btn-export" onclick="exportData('tablas', 'csv')">
-                                            <i class="fas fa-download"></i> Lista Todas
-                                        </button>
-                                        <button class="btn btn-info btn-export" id="export-selected-list-btn" onclick="exportSelectedTablesList()" disabled>
-                                            <i class="fas fa-list"></i> Lista Seleccionadas (<span id="selected-count-list">0</span>)
+                                            <i class="fas fa-download"></i> CSV Todas
                                         </button>
                                         <button class="btn btn-success btn-export" id="export-selected-btn" onclick="exportSelectedTables()" disabled>
-                                            <i class="fas fa-download"></i> Estructura Seleccionadas (<span id="selected-count">0</span>)
+                                            <i class="fas fa-download"></i> CSV Seleccionadas (<span id="selected-count">0</span>)
                                         </button>
                                         <button class="btn btn-warning btn-export" onclick="clearAllSelections()">
                                             <i class="fas fa-times"></i> Limpiar Selección
@@ -605,6 +602,6 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="diccionario_viewer.js?v=20250930e"></script>
+    <script src="diccionario_viewer_simple.js"></script>
 </body>
 </html>

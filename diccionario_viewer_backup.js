@@ -76,19 +76,9 @@ class DiccionarioDatos {
     }
 
     detectTimestamp() {
-        // Lista de timestamps disponibles (del más reciente al más antiguo)
-        const availableTimestamps = [
-            '20250827_171054',
-            '20250827_170821', 
-            '20250827_170313',
-            '20250827_144418',
-            '20250721_130849',
-            '20250721_114257'
-        ];
-        
-        // En un entorno real, esto podría verificar qué archivos existen
-        // Por ahora, usar el más reciente disponible
-        return availableTimestamps[0];
+        // Intentar detectar el timestamp del archivo más reciente
+        // En un entorno real, esto podría venir de un parámetro o API
+        return '20250721_114257'; // Valor por defecto basado en el archivo generado
     }
 
     async loadCSV(filename) {
@@ -526,8 +516,7 @@ class DiccionarioDatos {
         const data = this.filteredData[section] || [];
         
         if (format === 'csv') {
-            const filename = `${section}_completo.csv`;
-            this.exportToCSV(data, filename);
+            this.exportToCSV(data, `${section}_filtrado.csv`);
         }
     }
 
@@ -538,29 +527,12 @@ class DiccionarioDatos {
         }
 
         const headers = Object.keys(data[0]);
-        
-        // Crear contenido CSV con BOM para UTF-8
         const csvContent = [
             headers.join(','),
-            ...data.map(row => headers.map(header => {
-                const value = row[header] || '';
-                // Escapar comillas dobles y envolver en comillas si contiene comas, comillas o saltos de línea
-                if (value.toString().includes(',') || value.toString().includes('"') || value.toString().includes('\n')) {
-                    return `"${value.toString().replace(/"/g, '""')}"`;
-                }
-                return value.toString();
-            }).join(','))
+            ...data.map(row => headers.map(header => `"${row[header] || ''}"`).join(','))
         ].join('\n');
 
-        // Agregar BOM (Byte Order Mark) para UTF-8 para que Excel lo reconozca correctamente
-        const BOM = '\uFEFF';
-        const csvWithBOM = BOM + csvContent;
-        
-        // Crear blob con UTF-8 encoding
-        const blob = new Blob([csvWithBOM], { 
-            type: 'text/csv;charset=utf-8;' 
-        });
-        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         
@@ -571,9 +543,6 @@ class DiccionarioDatos {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
-        // Limpiar URL
-        URL.revokeObjectURL(url);
     }
 
     updateSelectedTablesUI() {
@@ -591,26 +560,16 @@ class DiccionarioDatos {
         
         const selectedCount = this.selectedTables.size;
         
-        // Actualizar contadores
+        // Actualizar contador
         const countElement = document.getElementById('selected-count');
         if (countElement) {
             countElement.textContent = selectedCount;
         }
         
-        const countListElement = document.getElementById('selected-count-list');
-        if (countListElement) {
-            countListElement.textContent = selectedCount;
-        }
-        
-        // Habilitar/deshabilitar botones de descarga
+        // Habilitar/deshabilitar botón de descarga
         const exportBtn = document.getElementById('export-selected-btn');
         if (exportBtn) {
             exportBtn.disabled = selectedCount === 0;
-        }
-        
-        const exportListBtn = document.getElementById('export-selected-list-btn');
-        if (exportListBtn) {
-            exportListBtn.disabled = selectedCount === 0;
         }
         
         // Actualizar checkbox "seleccionar todas" para la página actual
@@ -655,223 +614,15 @@ class DiccionarioDatos {
             return;
         }
         
-        // Obtener la estructura detallada de las tablas seleccionadas
-        const tableStructures = this.getSelectedTablesStructure(selectedTableNames);
-        
-        if (tableStructures.length === 0) {
-            alert('No se pudo obtener la estructura de las tablas seleccionadas');
-            return;
-        }
-        
-        // Crear nombre de archivo con las tablas incluidas
-        let filename;
-        if (selectedTableNames.length === 1) {
-            filename = `estructura_${selectedTableNames[0]}.csv`;
-        } else if (selectedTableNames.length <= 3) {
-            filename = `estructura_${selectedTableNames.join('_')}.csv`;
-        } else {
-            filename = `estructura_${selectedTableNames.length}_tablas.csv`;
-        }
-        
-        this.exportToCSV(tableStructures, filename);
-        
-        // Mostrar mensaje de confirmación
-        alert(`Se ha exportado la estructura detallada de ${selectedTableNames.length} tablas: ${selectedTableNames.join(', ')}`);
-    }
-
-    getSelectedTablesStructure(selectedTableNames) {
-        const structures = [];
-        
-        selectedTableNames.forEach(tableName => {
-            // Obtener columnas de esta tabla
-            const tableColumns = this.filteredData.columnas.filter(col => 
-                col.TABLA === tableName
-            );
-            
-            // Obtener restricciones de esta tabla
-            const tableConstraints = this.filteredData.restricciones.filter(rest => 
-                rest.TABLA === tableName
-            );
-            
-            // Crear estructura para cada columna
-            tableColumns.forEach(column => {
-                // Buscar si esta columna tiene restricciones
-                const primaryKey = tableConstraints.find(c => 
-                    c.TIPO === 'PRIMARY KEY' && 
-                    (c.COLUMNAS || '').includes(column.COLUMNA)
-                );
-                
-                const foreignKey = tableConstraints.find(c => 
-                    c.TIPO === 'FOREIGN KEY' && 
-                    (c.COLUMNAS || '').includes(column.COLUMNA)
-                );
-                
-                const uniqueConstraint = tableConstraints.find(c => 
-                    c.TIPO === 'UNIQUE' && 
-                    (c.COLUMNAS || '').includes(column.COLUMNA)
-                );
-                
-                // Crear registro de estructura
-                const structure = {
-                    'Tabla': tableName,
-                    'Nombre de la variable': column.COLUMNA || '',
-                    'Nombre abreviado': this.getAbbreviatedName(column.COLUMNA || ''),
-                    'Llave primaria': primaryKey ? 'SÍ' : 'NO',
-                    'Llave foránea': foreignKey ? 'SÍ' : 'NO',
-                    'Campo Obligatorio': column.PERMITE_NULOS === 'N' ? 'SÍ' : 'NO',
-                    'Dominio': this.extractDomain(column.TIPO_COMPLETO || ''),
-                    'Tipo de datos': this.normalizeDataType(column.TIPO_COMPLETO || ''),
-                    'Longitud': this.extractLength(column.TIPO_COMPLETO || ''),
-                    'Regla de validación': this.getValidationRule(column, tableConstraints),
-                    'Descripción': this.generateColumnDescription(column, primaryKey, foreignKey),
-                    'Observaciones': this.generateObservations(column, tableConstraints)
-                };
-                
-                structures.push(structure);
-            });
-        });
-        
-        return structures;
-    }
-
-    getAbbreviatedName(columnName) {
-        // Crear nombre abreviado basado en el nombre de la columna
-        if (!columnName) return '';
-        
-        // Reglas comunes de abreviación
-        const words = columnName.split('_');
-        if (words.length > 1) {
-            return words.map(word => word.substring(0, 3).toUpperCase()).join('_');
-        }
-        
-        return columnName.length > 8 ? 
-            columnName.substring(0, 8).toUpperCase() : 
-            columnName.toUpperCase();
-    }
-
-    extractDomain(dataType) {
-        // Extraer dominio del tipo de datos
-        if (!dataType) return '';
-        
-        if (dataType.includes('VARCHAR')) return 'Texto';
-        if (dataType.includes('NUMBER')) return 'Numérico';
-        if (dataType.includes('DATE')) return 'Fecha';
-        if (dataType.includes('TIMESTAMP')) return 'Fecha/Hora';
-        if (dataType.includes('CLOB')) return 'Texto Largo';
-        if (dataType.includes('BLOB')) return 'Binario';
-        
-        return 'Otro';
-    }
-
-    normalizeDataType(dataType) {
-        // Normalizar tipo de datos
-        if (!dataType) return '';
-        
-        if (dataType.includes('VARCHAR2')) return 'VARCHAR2';
-        if (dataType.includes('NUMBER')) return 'NUMBER';
-        if (dataType.includes('DATE')) return 'DATE';
-        if (dataType.includes('TIMESTAMP')) return 'TIMESTAMP';
-        if (dataType.includes('CLOB')) return 'CLOB';
-        if (dataType.includes('BLOB')) return 'BLOB';
-        
-        return dataType;
-    }
-
-    extractLength(dataType) {
-        // Extraer longitud del tipo de datos
-        if (!dataType) return '';
-        
-        const match = dataType.match(/\(([^)]+)\)/);
-        return match ? match[1] : '';
-    }
-
-    getValidationRule(column, constraints) {
-        // Obtener reglas de validación
-        const checkConstraints = constraints.filter(c => 
-            c.TIPO === 'CHECK' && 
-            (c.COLUMNAS || '').includes(column.COLUMNA)
-        );
-        
-        if (checkConstraints.length > 0) {
-            return checkConstraints.map(c => c.RESTRICCION).join(', ');
-        }
-        
-        // Reglas básicas basadas en el tipo
-        if (column.PERMITE_NULOS === 'N') {
-            return 'Campo requerido';
-        }
-        
-        return '';
-    }
-
-    generateColumnDescription(column, primaryKey, foreignKey) {
-        // Generar descripción de la columna
-        let description = '';
-        
-        if (primaryKey) {
-            description = `Identificador único de la tabla ${column.TABLA}`;
-        } else if (foreignKey) {
-            description = `Referencia a otra tabla`;
-        } else if (column.COLUMNA.includes('FECHA')) {
-            description = 'Campo de fecha';
-        } else if (column.COLUMNA.includes('NOMBRE')) {
-            description = 'Campo de nombre';
-        } else if (column.COLUMNA.includes('CODIGO')) {
-            description = 'Campo de código';
-        } else {
-            description = `Campo ${column.COLUMNA.toLowerCase()} de la tabla ${column.TABLA}`;
-        }
-        
-        return description;
-    }
-
-    generateObservations(column, constraints) {
-        // Generar observaciones adicionales
-        const observations = [];
-        
-        if (column.PERMITE_NULOS === 'N') {
-            observations.push('Campo obligatorio');
-        }
-        
-        const uniqueConstraint = constraints.find(c => 
-            c.TIPO === 'UNIQUE' && 
-            (c.COLUMNAS || '').includes(column.COLUMNA)
-        );
-        
-        if (uniqueConstraint) {
-            observations.push('Valor único');
-        }
-        
-        return observations.join(', ');
-    }
-
-    exportSelectedTablesList() {
-        const selectedTableNames = this.getSelectedTables();
-        
-        if (selectedTableNames.length === 0) {
-            alert('No hay tablas seleccionadas para exportar');
-            return;
-        }
-        
-        // Filtrar los datos básicos de las tablas seleccionadas
+        // Filtrar los datos de las tablas seleccionadas
         const selectedData = this.filteredData.tablas.filter(tabla => 
             selectedTableNames.includes(tabla.TABLA)
         );
         
-        // Crear nombre de archivo con las tablas incluidas
-        let filename;
-        if (selectedTableNames.length === 1) {
-            filename = `lista_${selectedTableNames[0]}.csv`;
-        } else if (selectedTableNames.length <= 3) {
-            filename = `lista_${selectedTableNames.join('_')}.csv`;
-        } else {
-            filename = `lista_${selectedTableNames.length}_tablas.csv`;
-        }
-        
-        this.exportToCSV(selectedData, filename);
+        this.exportToCSV(selectedData, `tablas_seleccionadas_${selectedTableNames.length}.csv`);
         
         // Mostrar mensaje de confirmación
-        alert(`Se ha exportado la lista de ${selectedTableNames.length} tablas: ${selectedTableNames.join(', ')}`);
+        alert(`Se han exportado ${selectedTableNames.length} tablas seleccionadas`);
     }
 }
 
@@ -901,12 +652,6 @@ function toggleAllTables(checked) {
 function exportSelectedTables() {
     if (diccionario) {
         diccionario.exportSelectedTables();
-    }
-}
-
-function exportSelectedTablesList() {
-    if (diccionario) {
-        diccionario.exportSelectedTablesList();
     }
 }
 

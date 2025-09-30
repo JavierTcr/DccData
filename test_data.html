@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Datos</title>
+</head>
+<body>
+    <h1>Test de Carga de Datos</h1>
+    <div id="result"></div>
+    
+    <script>
+        async function testDataLoad() {
+            try {
+                console.log('Intentando cargar datos...');
+                const response = await fetch('data/tablas_spe_20250721_114257.csv');
+                console.log('Response status:', response.status);
+                if (response.ok) {
+                    const text = await response.text();
+                    console.log('Datos cargados:', text.substring(0, 200));
+                    document.getElementById('result').innerHTML = '<pre>' + text.substring(0, 500) + '</pre>';
+                } else {
+                    console.error('Error cargando archivo:', response.status);
+                    document.getElementById('result').innerHTML = 'Error: ' + response.status;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = 'Error: ' + error.message;
+            }
+        }
+        
+        testDataLoad();
+    </script>
+</body>
+</html>
