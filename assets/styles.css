@@ -65,33 +65,6 @@ body {
     margin-bottom: 30px;
 }
 
-.stats-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 20px;
-    text-align: center;
-    transition: transform 0.3s ease;
-    cursor: pointer;
-}
-
-.stats-card:hover {
-    transform: translateY(-5px);
-}
-
-.stats-card i {
-    font-size: 3rem;
-    margin-bottom: 15px;
-    opacity: 0.8;
-}
-
-.stats-card h3 {
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
 .search-container {
     background: white;
     border-radius: 15px;
@@ -220,31 +193,6 @@ body {
     border-color: var(--secondary-color);
 }
 
-.info-box {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 15px;
-    padding: 20px;
-    margin-bottom: 30px;
-}
-
-.info-box h4 {
-    margin-bottom: 15px;
-    font-weight: bold;
-}
-
-.export-buttons {
-    margin-bottom: 20px;
-}
-
-.btn-export {
-    margin-right: 10px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    padding: 8px 16px;
-    font-size: 0.9rem;
-}
-
 .alert-info {
     background: linear-gradient(135deg, #3498db, #2980b9);
     color: white;
@@ -363,19 +311,9 @@ tr[style*="cursor: pointer"]:hover {
 }
 
 /* Mejoras en botones de exportación */
-.export-buttons .btn {
-    margin-right: 0.5rem;
-    transition: all 0.3s ease;
-}
-
-.export-buttons .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
 /* Estilos para el modal header mejorado */
 .modal-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(120deg, #2c3e50, #356487);
     color: white;
     border-radius: 0.5rem 0.5rem 0 0;
 }
@@ -398,4 +336,84 @@ tr[style*="cursor: pointer"]:hover {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Summary and export controls: sober dictionary palette. */
+.stats-card {
+    background: #f8fafc;
+    color: #263f59;
+    border: 1px solid #dce5ed;
+    border-top: 3px solid #38688f;
+    border-radius: 12px;
+    padding: 20px 16px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(38, 63, 89, .05);
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+.stats-card[onclick] { cursor: pointer; }
+.stats-card:hover {
+    border-color: #8aa9c2;
+    box-shadow: 0 5px 14px rgba(38, 63, 89, .1);
+}
+.stats-card i {
+    display: inline-grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #e6eef5;
+    color: #38688f;
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+    opacity: 1;
+}
+.stats-card h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 6px;
+}
+.stats-card p { color: #54677a; font-size: .95rem; margin-bottom: 0; }
+.info-box {
+    background: linear-gradient(120deg, #2c3e50, #356487);
+    color: #fff;
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 24px;
+}
+.info-box h4 { font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; }
+.info-box p { color: #e2edf5; margin-bottom: 0; }
+.export-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 0; }
+.export-buttons-selection { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 1fr; }
+.export-buttons .btn-export {
+    margin: 0;
+    min-height: 42px;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: .875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: normal;
+    transition: background-color .2s ease, border-color .2s ease;
+    --bs-btn-focus-shadow-rgb: 56, 104, 143;
+}
+.export-buttons .btn-export i { margin-right: 5px; }
+.export-buttons .btn-primary { background: #315d80; border-color: #315d80; color: #fff; }
+.export-buttons .btn-info { background: #edf3f8; border-color: #bacbd9; color: #2d506d; }
+.export-buttons .btn-success { background: #2e6868; border-color: #2e6868; color: #fff; }
+.export-buttons .btn-warning { background: #f4f6f8; border-color: #cbd3db; color: #4b5b6b; }
+.export-buttons .btn-primary:hover:not(:disabled) { background: #244866; border-color: #244866; }
+.export-buttons .btn-info:hover:not(:disabled) { background: #dfeaf3; border-color: #8ba7bd; }
+.export-buttons .btn-success:hover:not(:disabled) { background: #245252; border-color: #245252; }
+.export-buttons .btn-warning:hover:not(:disabled) { background: #e5eaf0; border-color: #a6b3c0; }
+.export-buttons .btn-export:focus-visible { outline: 3px solid #8fb1ce; outline-offset: 3px; }
+.export-buttons .btn-export:disabled { opacity: .6; }
+.export-buttons #selected-count { color: inherit; }
+@media (max-width: 575px) {
+    .export-buttons-selection { grid-template-columns: 1fr; }
+    .export-buttons-selection .btn-export { text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .stats-card, .export-buttons .btn-export { transition: none; }
 }
