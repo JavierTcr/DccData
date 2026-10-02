@@ -1,0 +1,10 @@
+{
+  "name": "diccionario-datos-ape",
+  "private": true,
+  "scripts": {
+    "test": "node tests/dictionary.test.js && node tests/navigation.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0"
+  }
+}

@@ -1,3 +1,5 @@
+> Actualización 2026-10-01: iniciar con `python servir_diccionario.py` y abrir `/diccionario_viewer.html`. La selección persiste entre páginas y filtros; seleccionar todas actúa sobre la página visible. Las estructuras seleccionadas se exportan completas, independientemente de filtros de columnas/restricciones. Se corrigió la detección de llaves Oracle y la lectura CSV multilínea. Ver [README.md](README.md) para los comandos actuales.
+
 # Nueva Funcionalidad: Selección Masiva de Tablas
 
 ## ¿Qué se agregó?
@@ -26,7 +28,7 @@ Se ha implementado una nueva funcionalidad de **selección masiva de tablas** en
 #### Descargar tablas seleccionadas:
 - Seleccionar las tablas deseadas
 - Hacer clic en "CSV Seleccionadas (X)" donde X es el número de tablas seleccionadas
-- El archivo se descargará con el nombre `tablas_seleccionadas_X.csv`
+- El archivo se descargará con el nombre `estructura_N_tablas.csv` (o `estructura_NOMBRE.csv` para una tabla)
 
 #### Limpiar selección:
 - Hacer clic en el botón "Limpiar Selección" para quitar todas las selecciones

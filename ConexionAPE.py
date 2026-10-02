@@ -1,13 +1,13 @@
-import cx_Oracle
+"""Conexión Oracle compartida por los extractores de metadatos."""
 import os
+from pathlib import Path
+import cx_Oracle
 from dotenv import load_dotenv
 
-# Cargar variables de entorno desde el archivo .env
-load_dotenv()
+PROJECT_ROOT = Path(__file__).resolve().parent
+load_dotenv(PROJECT_ROOT / '.env')
 
 class DatabaseConnection:
-    """Clase para manejar la conexión a la base de datos Oracle de forma segura"""
-    
     def __init__(self):
         self.host = os.getenv('DB_HOST')
         self.port = os.getenv('DB_PORT')
@@ -15,77 +15,72 @@ class DatabaseConnection:
         self.user = os.getenv('DB_USER')
         self.password = os.getenv('DB_PASSWORD')
         self.connection = None
-        
+
     def validate_credentials(self):
-        """Validar que todas las credenciales estén disponibles"""
         if not all([self.host, self.port, self.service_name, self.user, self.password]):
-            raise ValueError("Faltan credenciales de la base de datos en el archivo .env")
-    
-    def connect(self):
-        """Establecer conexión a la base de datos"""
+            raise ValueError('Faltan variables obligatorias DB_* en la configuración')
         try:
-            self.validate_credentials()
-            
-            # Crear DSN
-            dsn_tns = cx_Oracle.makedsn(
-                host=self.host,
-                port=self.port,
-                service_name=self.service_name
-            )
-            
-            # Establecer conexión
-            self.connection = cx_Oracle.connect(
-                user=self.user,
-                password=self.password,
-                dsn=dsn_tns
-            )
-            
-            print("✅ Conexión exitosa a la base de datos Oracle")
+            port = int(self.port)
+        except (TypeError, ValueError):
+            raise ValueError('DB_PORT debe ser un número entero') from None
+        if not 1 <= port <= 65535:
+            raise ValueError('DB_PORT fuera de rango')
+        # Avoid injecting descriptor syntax through configuration fields.
+        if any(ch in value for value in [self.host, self.service_name] for ch in '()\n\r'):
+            raise ValueError('Host o servicio Oracle inválido')
+
+    def connect(self):
+        if self.connection is not None:
             return self.connection
-            
-        except cx_Oracle.DatabaseError as e:
-            print(f"❌ Error de base de datos: {e}")
+        self.validate_credentials()
+        protocol = os.getenv('DB_PROTOCOL', 'TCP').upper()
+        if protocol not in ('TCP', 'TCPS'):
+            raise ValueError('DB_PROTOCOL debe ser TCP o TCPS')
+        connect_timeout = self._positive_int('DB_CONNECT_TIMEOUT_SECONDS', 5)
+        call_timeout = self._positive_int('DB_CALL_TIMEOUT_MS', 30000)
+        dsn = (
+            f'(DESCRIPTION=(CONNECT_TIMEOUT={connect_timeout})'
+            f'(TRANSPORT_CONNECT_TIMEOUT={connect_timeout})(RETRY_COUNT=0)'
+            f'(ADDRESS=(PROTOCOL={protocol})(HOST={self.host})(PORT={int(self.port)}))'
+            f'(CONNECT_DATA=(SERVICE_NAME={self.service_name})))'
+        )
+        connection = cx_Oracle.connect(user=self.user, password=self.password, dsn=dsn)
+        try:
+            connection.call_timeout = call_timeout
+        except Exception:
+            connection.close()
             raise
-        except ValueError as e:
-            print(f"❌ Error de configuración: {e}")
-            raise
-        except Exception as e:
-            print(f"❌ Error inesperado: {e}")
-            raise
-    
+        self.connection = connection
+        return connection
+
+    @staticmethod
+    def _positive_int(name, default):
+        try:
+            value = int(os.getenv(name, str(default)))
+        except ValueError:
+            raise ValueError(f'{name} debe ser un entero positivo') from None
+        if value <= 0:
+            raise ValueError(f'{name} debe ser un entero positivo')
+        return value
+
     def disconnect(self):
-        """Cerrar la conexión a la base de datos"""
-        if self.connection:
-            try:
-                self.connection.close()
-                print("🔒 Conexión cerrada correctamente")
-            except Exception as e:
-                print(f"⚠️ Error al cerrar la conexión: {e}")
-    
+        connection, self.connection = self.connection, None
+        if connection is not None:
+            connection.close()
+
     def __enter__(self):
-        """Soporte para context manager (with statement)"""
         return self.connect()
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Cerrar conexión automáticamente al salir del context manager"""
         self.disconnect()
 
-# Ejemplo de uso
-if __name__ == "__main__":
-    # Opción 1: Uso básico
-    db = DatabaseConnection()
-    try:
-        conn = db.connect()
-        # Aquí puedes realizar tus consultas
-        db.disconnect()
-    except Exception as e:
-        print(f"No se pudo establecer la conexión: {e}")
-    
-    # Opción 2: Uso con context manager (recomendado)
+if __name__ == '__main__':
     try:
         with DatabaseConnection() as conn:
-            print("🔍 Conexión lista para realizar consultas")
-            # Aquí puedes realizar tus consultas
-            # La conexión se cerrará automáticamente
-    except Exception as e:
-        print(f"No se pudo establecer la conexión: {e}")
+            with conn.cursor() as cursor:
+                cursor.execute('SELECT 1 FROM DUAL')
+                print('Conexión Oracle validada:', cursor.fetchone()[0])
+    except (cx_Oracle.Error, ValueError) as exc:
+        code = getattr(exc.args[0], 'code', None) if exc.args else None
+        print('No fue posible validar la conexión. Código Oracle:', code)
+        raise SystemExit(1)

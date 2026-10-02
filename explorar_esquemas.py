@@ -1,42 +1,8 @@
-import cx_Oracle
-import os
-from dotenv import load_dotenv
+from ConexionAPE import DatabaseConnection
 
-# Cargar variables de entorno
-load_dotenv()
+class SchemaExplorer(DatabaseConnection):
+    """Explora los metadatos visibles para la cuenta configurada."""
 
-class SchemaExplorer:
-    """Clase para explorar los esquemas disponibles en Oracle"""
-    
-    def __init__(self):
-        self.host = os.getenv('DB_HOST')
-        self.port = os.getenv('DB_PORT')
-        self.service_name = os.getenv('DB_SERVICE_NAME')
-        self.user = os.getenv('DB_USER')
-        self.password = os.getenv('DB_PASSWORD')
-        self.connection = None
-    
-    def connect(self):
-        """Establecer conexión"""
-        dsn_tns = cx_Oracle.makedsn(
-            host=self.host,
-            port=self.port,
-            service_name=self.service_name
-        )
-        
-        self.connection = cx_Oracle.connect(
-            user=self.user,
-            password=self.password,
-            dsn=dsn_tns
-        )
-        print("✅ Conectado para explorar esquemas")
-    
-    def disconnect(self):
-        """Cerrar conexión"""
-        if self.connection:
-            self.connection.close()
-            print("🔒 Conexión cerrada")
-    
     def list_available_schemas(self):
         """Listar esquemas disponibles para el usuario actual"""
         query = """
@@ -140,9 +106,9 @@ if __name__ == "__main__":
                 print(f"\nMostrando vista previa del esquema: {first_schema}")
                 explorer.get_schema_preview(first_schema)
         
-        explorer.disconnect()
         
     except Exception as e:
         print(f"❌ Error: {e}")
-        if explorer.connection:
-            explorer.disconnect()
+        raise SystemExit(1)
+    finally:
+        explorer.disconnect()

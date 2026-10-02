@@ -1,0 +1,11 @@
+﻿METRICA,VALOR
+Esquema,SPE
+Fecha de extracción,2026-10-01 11:02:26
+Tiempo total (segundos),13.92
+Tablas procesadas,649
+Columnas procesadas,5043
+Restricciones procesadas,3787
+Índices procesados,738
+Tablas temp_ excluidas,85
+Criterio exclusión,Nombre contiene TEMP_ literal; no equivale a TEMPORARY=Y
+NUM_FILAS,"Estadísticas Oracle; vacío significa sin estad?sticas, no cero filas"

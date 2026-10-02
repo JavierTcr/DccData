@@ -30,123 +30,38 @@ class DiccionarioDatos {
             console.log('DiccionarioDatos inicializado correctamente');
         } catch (error) {
             console.error('Error inicializando la aplicación:', error);
-            this.showError('Error cargando los datos del diccionario');
+            this.showError('Error cargando los datos del diccionario: ' + error.message);
         }
     }
 
     async loadData() {
         this.showLoading(true);
-        
         try {
-            // Detectar archivos CSV automáticamente por timestamp
-            const timestamp = this.detectTimestamp();
-            
-            const [tablasData, columnasData, restriccionesData, indicesData] = await Promise.all([
-                this.loadCSV(`data/tablas_spe_${timestamp}.csv`),
-                this.loadCSV(`data/columnas_spe_${timestamp}.csv`),
-                this.loadCSV(`data/restricciones_spe_${timestamp}.csv`),
-                this.loadCSV(`data/indices_spe_${timestamp}.csv`)
-            ]);
-
-            this.data.tablas = tablasData;
-            this.data.columnas = columnasData;
-            this.data.restricciones = restriccionesData;
-            this.data.indices = indicesData;
-
-            // Inicializar datos filtrados
-            this.filteredData = { ...this.data };
-            
-            // Llenar filtros
+            const {data, manifest} = await DictionaryCore.loadSnapshot();
+            this.data = data;
+            this.manifest = manifest;
+            this.filteredData = Object.fromEntries(Object.entries(data).map(([key, rows]) => [key, [...rows]]));
+            if (this.createOptimizedIndexes) this.createOptimizedIndexes();
             this.populateFilters();
-            
-            console.log('Datos cargados:', {
-                tablas: tablasData.length,
-                columnas: columnasData.length,
-                restricciones: restriccionesData.length,
-                indices: indicesData.length
-            });
-            
-        } catch (error) {
-            console.error('Error cargando datos:', error);
-            // Si no se pueden cargar los datos, usar datos de ejemplo
-            this.loadSampleData();
+            DictionaryCore.updateSummary(data, manifest);
         } finally {
             this.showLoading(false);
         }
     }
 
     detectTimestamp() {
-        // Lista de timestamps disponibles (del más reciente al más antiguo)
-        const availableTimestamps = [
-            '20250827_171054',
-            '20250827_170821', 
-            '20250827_170313',
-            '20250827_144418',
-            '20250721_130849',
-            '20250721_114257'
-        ];
-        
-        // En un entorno real, esto podría verificar qué archivos existen
-        // Por ahora, usar el más reciente disponible
-        return availableTimestamps[0];
+        return this.manifest?.timestamp || null;
     }
 
     async loadCSV(filename) {
-        try {
-            const response = await fetch(filename);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const text = await response.text();
-            return this.parseCSV(text);
-        } catch (error) {
-            console.warn(`No se pudo cargar ${filename}:`, error);
-            return [];
-        }
+        return DictionaryCore.loadCSV(filename);
     }
 
     parseCSV(text) {
-        const lines = text.split('\n').filter(line => line.trim());
-        if (lines.length === 0) return [];
-        
-        const headers = this.parseCSVLine(lines[0]);
-        const data = [];
-        
-        for (let i = 1; i < lines.length; i++) {
-            const values = this.parseCSVLine(lines[i]);
-            if (values.length === headers.length) {
-                const row = {};
-                headers.forEach((header, index) => {
-                    row[header] = values[index];
-                });
-                data.push(row);
-            }
-        }
-        
-        return data;
+        return DictionaryCore.parseCSV(text);
     }
 
-    parseCSVLine(line) {
-        const result = [];
-        let current = '';
-        let inQuotes = false;
         
-        for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            
-            if (char === '"') {
-                inQuotes = !inQuotes;
-            } else if (char === ',' && !inQuotes) {
-                result.push(current.trim());
-                current = '';
-            } else {
-                current += char;
-            }
-        }
-        
-        result.push(current.trim());
-        return result;
-    }
 
     loadSampleData() {
         // Datos de ejemplo si no se pueden cargar los CSV
@@ -182,8 +97,8 @@ class DiccionarioDatos {
     }
 
     showError(message) {
-        const container = document.querySelector('.col-lg-9');
-        container.innerHTML = `
+        const container = document.querySelector('.col-lg-9') || document.querySelector('main') || document.body;
+        container.innerHTML = DictionaryCore.html`
             <div class="alert alert-danger" role="alert">
                 <i class="fas fa-exclamation-triangle"></i>
                 <strong>Error:</strong> ${message}
@@ -231,7 +146,7 @@ class DiccionarioDatos {
             const tablas = [...new Set(this.data.tablas.map(t => t.TABLA))].sort();
             tablaFilter.innerHTML = '<option value="">Filtrar por tabla...</option>';
             tablas.forEach(tabla => {
-                tablaFilter.innerHTML += `<option value="${tabla}">${tabla}</option>`;
+                tablaFilter.innerHTML += DictionaryCore.html`<option value="${tabla}">${tabla}</option>`;
             });
         }
     }
@@ -254,7 +169,7 @@ class DiccionarioDatos {
         }
 
         // Activar nav-link correspondiente
-        event?.target?.classList.add('active');
+        document.querySelector(`[onclick="showSection('${section}')"]`)?.classList.add('active');
 
         this.currentSection = section;
 
@@ -306,7 +221,7 @@ class DiccionarioDatos {
             const isSelected = this.selectedTables.has(tableName);
             
             const tr = document.createElement('tr');
-            tr.innerHTML = `
+            tr.innerHTML = DictionaryCore.html`
                 <td>
                     <input type="checkbox" class="table-checkbox" 
                            id="table-check-${globalIndex}" 
@@ -314,13 +229,19 @@ class DiccionarioDatos {
                            ${isSelected ? 'checked' : ''}
                            onchange="updateSelectedTables()">
                 </td>
-                <td><strong>${tableName}</strong></td>
+                <td><button type="button" class="btn btn-link p-0 fw-bold text-start" data-action="details" title="Ver estructura">${tableName}</button></td>
                 <td>${this.formatNumber(row.NUM_FILAS)}</td>
                 <td><span class="badge badge-custom" style="background-color: #6c757d;">${row.TABLESPACE || 'N/A'}</span></td>
                 <td><span class="badge badge-custom ${row.ESTADO === 'VALID' ? 'bg-success' : 'bg-warning'}">${row.ESTADO || 'N/A'}</span></td>
                 <td>${this.formatDate(row.ULTIMO_ANALISIS)}</td>
             `;
             
+            tr.querySelector('[data-action="details"]').addEventListener('click', () => this.showTableDetails(tableName));
+            tr.style.cursor = 'pointer';
+            tr.addEventListener('click', event => {
+                if (!event.target.closest('input, label, button, a')) this.showTableDetails(tableName);
+            });
+
             if (isSelected) {
                 tr.classList.add('selected-row');
             }
@@ -331,6 +252,15 @@ class DiccionarioDatos {
         this.renderPagination('tablas', data.length, pagination);
         this.updateSelectedTablesUI();
         console.log('Tabla de tablas renderizada completamente');
+    }
+
+    showTableDetails(tableName) {
+        const structure = this.getSelectedTablesStructure([tableName]);
+        if (!structure.length) {
+            alert('No hay columnas disponibles para esta tabla');
+            return;
+        }
+        DictionaryCore.showStructure(tableName, structure, () => this.exportToCSV(structure, `estructura_${tableName}.csv`));
     }
 
     renderColumnasTable(data) {
@@ -348,7 +278,7 @@ class DiccionarioDatos {
 
         pageData.forEach(row => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `
+            tr.innerHTML = DictionaryCore.html`
                 <td><strong>${row.TABLA || 'N/A'}</strong></td>
                 <td>${row.COLUMNA || 'N/A'}</td>
                 <td><code>${row.TIPO_COMPLETO || row.TIPO_DATO || 'N/A'}</code></td>
@@ -378,7 +308,7 @@ class DiccionarioDatos {
             const tr = document.createElement('tr');
             const tipoBadgeClass = this.getConstraintBadgeClass(row.TIPO_DESCRIPCION);
             
-            tr.innerHTML = `
+            tr.innerHTML = DictionaryCore.html`
                 <td><strong>${row.TABLA || 'N/A'}</strong></td>
                 <td>${row.NOMBRE_RESTRICCION || 'N/A'}</td>
                 <td><span class="badge badge-custom ${tipoBadgeClass}">${row.TIPO_DESCRIPCION || row.TIPO || 'N/A'}</span></td>
@@ -406,7 +336,7 @@ class DiccionarioDatos {
 
         pageData.forEach(row => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `
+            tr.innerHTML = DictionaryCore.html`
                 <td><strong>${row.TABLA || 'N/A'}</strong></td>
                 <td>${row.NOMBRE_INDICE || 'N/A'}</td>
                 <td>${row.TIPO_INDICE || 'N/A'}</td>
@@ -508,8 +438,9 @@ class DiccionarioDatos {
     }
 
     formatNumber(num) {
-        if (!num || num === 'N/A' || num === '0') return '0';
-        return parseInt(num).toLocaleString();
+        if (num === null || num === undefined || num === '') return 'Sin estadisticas';
+        const parsed = Number(num);
+        return Number.isFinite(parsed) ? parsed.toLocaleString('es-CO') : 'N/A';
     }
 
     formatDate(dateStr) {
@@ -532,47 +463,15 @@ class DiccionarioDatos {
     }
 
     exportToCSV(data, filename) {
-        if (data.length === 0) {
-            alert('No hay datos para exportar');
-            return;
-        }
-
-        const headers = Object.keys(data[0]);
-        
-        // Crear contenido CSV con BOM para UTF-8
-        const csvContent = [
-            headers.join(','),
-            ...data.map(row => headers.map(header => {
-                const value = row[header] || '';
-                // Escapar comillas dobles y envolver en comillas si contiene comas, comillas o saltos de línea
-                if (value.toString().includes(',') || value.toString().includes('"') || value.toString().includes('\n')) {
-                    return `"${value.toString().replace(/"/g, '""')}"`;
-                }
-                return value.toString();
-            }).join(','))
-        ].join('\n');
-
-        // Agregar BOM (Byte Order Mark) para UTF-8 para que Excel lo reconozca correctamente
-        const BOM = '\uFEFF';
-        const csvWithBOM = BOM + csvContent;
-        
-        // Crear blob con UTF-8 encoding
-        const blob = new Blob([csvWithBOM], { 
-            type: 'text/csv;charset=utf-8;' 
-        });
-        
-        const link = document.createElement('a');
+        if (!data.length) { alert('No hay datos para exportar'); return; }
+        const blob = new Blob([DictionaryCore.serializeCSV(data, ',')], {type: 'text/csv;charset=utf-8'});
         const url = URL.createObjectURL(blob);
-        
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.style.visibility = 'hidden';
-        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_');
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
-        
-        // Limpiar URL
+        link.remove();
         URL.revokeObjectURL(url);
     }
 
@@ -684,12 +583,12 @@ class DiccionarioDatos {
         
         selectedTableNames.forEach(tableName => {
             // Obtener columnas de esta tabla
-            const tableColumns = this.filteredData.columnas.filter(col => 
+            const tableColumns = this.data.columnas.filter(col =>
                 col.TABLA === tableName
             );
             
             // Obtener restricciones de esta tabla
-            const tableConstraints = this.filteredData.restricciones.filter(rest => 
+            const tableConstraints = this.data.restricciones.filter(rest =>
                 rest.TABLA === tableName
             );
             
@@ -697,18 +596,18 @@ class DiccionarioDatos {
             tableColumns.forEach(column => {
                 // Buscar si esta columna tiene restricciones
                 const primaryKey = tableConstraints.find(c => 
-                    c.TIPO === 'PRIMARY KEY' && 
-                    (c.COLUMNAS || '').includes(column.COLUMNA)
+                    DictionaryCore.constraintType(c) === 'P' &&
+                    DictionaryCore.hasColumn(c, column.COLUMNA)
                 );
                 
                 const foreignKey = tableConstraints.find(c => 
-                    c.TIPO === 'FOREIGN KEY' && 
-                    (c.COLUMNAS || '').includes(column.COLUMNA)
+                    DictionaryCore.constraintType(c) === 'R' &&
+                    DictionaryCore.hasColumn(c, column.COLUMNA)
                 );
                 
                 const uniqueConstraint = tableConstraints.find(c => 
-                    c.TIPO === 'UNIQUE' && 
-                    (c.COLUMNAS || '').includes(column.COLUMNA)
+                    DictionaryCore.constraintType(c) === 'U' &&
+                    DictionaryCore.hasColumn(c, column.COLUMNA)
                 );
                 
                 // Crear registro de estructura
@@ -788,12 +687,12 @@ class DiccionarioDatos {
     getValidationRule(column, constraints) {
         // Obtener reglas de validación
         const checkConstraints = constraints.filter(c => 
-            c.TIPO === 'CHECK' && 
-            (c.COLUMNAS || '').includes(column.COLUMNA)
+            DictionaryCore.constraintType(c) === 'C' &&
+            DictionaryCore.hasColumn(c, column.COLUMNA)
         );
         
         if (checkConstraints.length > 0) {
-            return checkConstraints.map(c => c.RESTRICCION).join(', ');
+            return checkConstraints.map(c => c.CONDICION_CHECK || c.RESTRICCION || c.NOMBRE_RESTRICCION).join(', ');
         }
         
         // Reglas básicas basadas en el tipo
@@ -806,10 +705,11 @@ class DiccionarioDatos {
 
     generateColumnDescription(column, primaryKey, foreignKey) {
         // Generar descripción de la columna
+        if (column.COMENTARIO) return column.COMENTARIO;
         let description = '';
         
         if (primaryKey) {
-            description = `Identificador único de la tabla ${column.TABLA}`;
+            description = (primaryKey.COLUMNAS || '').split(',').length > 1 ? 'Parte de llave primaria compuesta' : `Identificador único de la tabla ${column.TABLA}`;
         } else if (foreignKey) {
             description = `Referencia a otra tabla`;
         } else if (column.COLUMNA.includes('FECHA')) {
@@ -822,24 +722,28 @@ class DiccionarioDatos {
             description = `Campo ${column.COLUMNA.toLowerCase()} de la tabla ${column.TABLA}`;
         }
         
-        return description;
+        return 'Descripción sugerida: ' + description;
     }
 
     generateObservations(column, constraints) {
         // Generar observaciones adicionales
         const observations = [];
+        const foreignKey = constraints.find(c => DictionaryCore.constraintType(c) === 'R' && DictionaryCore.hasColumn(c, column.COLUMNA));
+        if (foreignKey?.TABLA_REFERENCIA) {
+            observations.push(`Referencia: ${foreignKey.ESQUEMA_REFERENCIA}.${foreignKey.TABLA_REFERENCIA} (${foreignKey.COLUMNAS_REFERENCIA})`);
+        }
         
         if (column.PERMITE_NULOS === 'N') {
             observations.push('Campo obligatorio');
         }
         
         const uniqueConstraint = constraints.find(c => 
-            c.TIPO === 'UNIQUE' && 
-            (c.COLUMNAS || '').includes(column.COLUMNA)
+            DictionaryCore.constraintType(c) === 'U' &&
+            DictionaryCore.hasColumn(c, column.COLUMNA)
         );
         
         if (uniqueConstraint) {
-            observations.push('Valor único');
+            observations.push((uniqueConstraint.COLUMNAS || '').split(',').length > 1 ? 'Parte de restricción UNIQUE compuesta' : 'Valor único');
         }
         
         return observations.join(', ');
@@ -854,7 +758,7 @@ class DiccionarioDatos {
         }
         
         // Filtrar los datos básicos de las tablas seleccionadas
-        const selectedData = this.filteredData.tablas.filter(tabla => 
+        const selectedData = this.data.tablas.filter(tabla =>
             selectedTableNames.includes(tabla.TABLA)
         );
         
@@ -934,16 +838,7 @@ function clearAllSelections() {
     }
 }
 
-function clearAllSelections() {
-    if (diccionario) {
-        diccionario.selectedTables.clear();
-        const checkboxes = document.querySelectorAll('.table-checkbox');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = false;
-        });
-        updateSelectedTables();
-    }
-}
+
 
 // Función global para mostrar secciones
 function showSection(section) {

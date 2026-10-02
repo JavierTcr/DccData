@@ -1,3 +1,17 @@
+# Ajustes de validación - 1 de octubre de 2026
+
+Corrección de navegación: los nombres y filas de tabla permiten abrir su estructura en ambos visores. Los checkboxes conservan su función de selección. Se añadieron pruebas de eventos DOM para apertura, cierre y descarga de estructuras, incluyendo el funcionamiento sin Bootstrap JavaScript.
+
+La selección masiva, filtros, paginación y exportaciones se mantienen. Se corrigieron CSV multilínea, detección exacta de PK/FK/UNIQUE, exportación completa de estructuras seleccionadas y limpieza de selección. Ambos visores comparten el parser y validan el snapshot publicado en `data/manifest.json`.
+
+La conexión Oracle fue unificada y el extractor publicó una nueva extracción de solo lectura con 649 tablas, 5.043 columnas, 3.787 restricciones y 738 índices. Se conservan los CSV anteriores. La extracción ahora incorpora comentarios, CHECK, destinos de FK, semántica de longitud y expresiones de índices.
+
+Inicio actualizado: `python servir_diccionario.py`; abrir `http://127.0.0.1:8000/diccionario_viewer.html`. El servidor restringe los archivos públicos y no expone `.env`, Git ni scripts Python. Las instrucciones de uso y pruebas vigentes están en [README.md](README.md).
+
+El contenido siguiente describe la implementación original; sus comandos o ejemplos de archivos deben contrastarse con el README actualizado.
+
+---
+
 # ✅ IMPLEMENTACIÓN COMPLETADA: Selección Masiva de Tablas
 
 ## 🎯 **FUNCIONALIDAD IMPLEMENTADA**

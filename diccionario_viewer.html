@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diccionario de Datos - Esquema SPE</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha384-3B6NwesSXE7YJlcLI9RpRqGf2p/EgVH8BgoKTaUrmKNDkHPStTQ3EyoYjCGXaOTS" crossorigin="anonymous" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
+    <link href="assets/dictionary_details.css?v=20261001c" rel="stylesheet">
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -298,7 +299,7 @@
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text">
                     <i class="fas fa-calendar"></i>
-                    Generado: <span id="generation-date">21/07/2025</span>
+                    Generado: <span id="generation-date">Cargando...</span>
                 </span>
             </div>
         </div>
@@ -350,36 +351,35 @@
                 <div id="resumen-section" class="content-section">
                     <div class="info-box">
                         <h4><i class="fas fa-info-circle"></i> Esquema SPE - Sistema de Información</h4>
-                        <p>Diccionario de datos completo del esquema SPE con 639 tablas activas (excluyendo 84 tablas temporales). 
-                           Esta documentación incluye estructura de tablas, columnas, restricciones e índices.</p>
+                        <p id="snapshot-description">Cargando información del diccionario...</p>
                     </div>
 
                     <div class="row">
                         <div class="col-md-3 col-sm-6">
                             <div class="stats-card">
                                 <i class="fas fa-table"></i>
-                                <h3 id="total-tablas">639</h3>
+                                <h3 id="total-tablas">Cargando...</h3>
                                 <p>Tablas</p>
                             </div>
                         </div>
                         <div class="col-md-3 col-sm-6">
                             <div class="stats-card">
                                 <i class="fas fa-columns"></i>
-                                <h3 id="total-columnas">4,979</h3>
+                                <h3 id="total-columnas">Cargando...</h3>
                                 <p>Columnas</p>
                             </div>
                         </div>
                         <div class="col-md-3 col-sm-6">
                             <div class="stats-card">
                                 <i class="fas fa-key"></i>
-                                <h3 id="total-restricciones">3,728</h3>
+                                <h3 id="total-restricciones">Cargando...</h3>
                                 <p>Restricciones</p>
                             </div>
                         </div>
                         <div class="col-md-3 col-sm-6">
                             <div class="stats-card">
                                 <i class="fas fa-search"></i>
-                                <h3 id="total-indices">664</h3>
+                                <h3 id="total-indices">Cargando...</h3>
                                 <p>Índices</p>
                             </div>
                         </div>
@@ -604,7 +604,8 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="diccionario_viewer.js?v=20250930e"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <script src="assets/dictionary_core.js?v=20261001c"></script>
+    <script src="diccionario_viewer.js"></script>
 </body>
 </html>

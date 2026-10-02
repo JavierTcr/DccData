@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diccionario de Datos - Esquema SPE</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/dictionary_details.css?v=20261001c" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha384-3B6NwesSXE7YJlcLI9RpRqGf2p/EgVH8BgoKTaUrmKNDkHPStTQ3EyoYjCGXaOTS" crossorigin="anonymous" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link href="assets/styles.css" rel="stylesheet">
 </head>
 <body>
@@ -19,7 +20,7 @@
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text">
                     <i class="fas fa-calendar"></i>
-                    Generado: <span id="generation-date">21/07/2025</span>
+                    Generado: <span id="generation-date">Cargando...</span>
                 </span>
             </div>
         </div>
@@ -112,12 +113,12 @@
                             <div class="col-md-6">
                                 <p><strong>Esquema:</strong> SPE</p>
                                 <p><strong>Base de datos:</strong> Oracle</p>
-                                <p><strong>Fecha extracción:</strong> 21 de julio, 2025</p>
+                                <p><strong>Fecha extracción:</strong> <span id="extraction-date">Cargando...</span></p>
                             </div>
                             <div class="col-md-6">
-                                <p><strong>Tiempo de procesamiento:</strong> ~5.24 segundos</p>
-                                <p><strong>Tablas temporales excluidas:</strong> 84</p>
-                                <p><strong>Estado:</strong> Activo y actualizado</p>
+                                <p><strong>Tiempo de procesamiento:</strong> <span id="extraction-seconds">Cargando...</span></p>
+                                <p><strong>Tablas excluidas por nombre TEMP_:</strong> <span id="excluded-tables">Cargando...</span></p>
+                                <p><strong>Estado:</strong> Extracción disponible</p>
                             </div>
                         </div>
                     </div>
@@ -321,7 +322,8 @@
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <script src="assets/dictionary_core.js?v=20261001c"></script>
     <script src="assets/script_fixed.js"></script>
 </body>
 </html>

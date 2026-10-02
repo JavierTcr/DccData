@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "schema": "SPE",
+  "timestamp": "20261001_110212",
+  "files": {
+    "tablas": "tablas_spe_20261001_110212.csv",
+    "columnas": "columnas_spe_20261001_110212.csv",
+    "restricciones": "restricciones_spe_20261001_110212.csv",
+    "indices": "indices_spe_20261001_110212.csv"
+  },
+  "counts": {
+    "tablas": 649,
+    "columnas": 5043,
+    "restricciones": 3787,
+    "indices": 738
+  },
+  "duration_seconds": 13.92,
+  "excluded_tables": 85
+}
