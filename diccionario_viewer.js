@@ -851,6 +851,11 @@ function exportData(section, format) {
 }
 
 // Inicializar la aplicación cuando se carga la página
+function openMer() {
+    try { sessionStorage.setItem('ape-mer-selection', JSON.stringify(diccionario?.getSelectedTables() || [])); } catch { /* The MER can also start without a transferred selection. */ }
+    window.location.href = 'mer.html';
+}
+
 let diccionario;
 document.addEventListener('DOMContentLoaded', () => {
     diccionario = new DiccionarioDatos();

@@ -2,9 +2,13 @@
   "name": "diccionario-datos-ape",
   "private": true,
   "scripts": {
-    "test": "node tests/dictionary.test.js && node tests/navigation.test.js"
+    "test": "node tests/dictionary.test.js && node tests/navigation.test.js && node tests/mer.test.js"
   },
   "devDependencies": {
     "jsdom": "26.1.0"
+  },
+  "dependencies": {
+    "cytoscape": "3.33.1",
+    "elkjs": "0.11.0"
   }
 }

@@ -1245,6 +1245,10 @@ function downloadTableDetails(tableName) {
 }
 
 // Inicializar la aplicación cuando se carga la página
+function openMer() {
+    window.location.href = 'mer.html';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM cargado, inicializando aplicación...');
     window.diccionario = new DiccionarioDatos();

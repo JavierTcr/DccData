@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Modelo entidad-relación · Diccionario APE</title>
+    <link rel="stylesheet" href="assets/mer.css?v=20261002">
+    <link rel="stylesheet" href="assets/dictionary_details.css?v=20261002">
+</head>
+<body>
+    <header class="mer-header"><a href="diccionario_viewer.html">← Diccionario</a><div><h1>Modelo entidad-relación</h1><p id="snapshot-label">Cargando extracción…</p></div><span class="header-tag">SPE · Modelo físico</span></header>
+    <main class="mer-app">
+        <aside class="mer-sidebar">
+            <h2>Tablas del modelo</h2>
+            <p class="muted">Elige una tabla para explorar sus relaciones o agrega varias al modelo.</p>
+            <label for="table-search">Buscar tabla</label><input id="table-search" type="search" placeholder="DEMANDA, OFERTA…" autocomplete="off">
+            <div id="table-results" class="table-results"></div>
+            <h3>Seleccionadas <span id="seed-count">0</span></h3>
+            <div id="seed-list" class="seed-list"></div>
+            <button id="clear-model" class="secondary">Limpiar modelo</button>
+            <div class="options">
+                <label for="relation-depth">Nivel de relaciones</label><select id="relation-depth"><option value="1">Directas · 1 nivel</option><option value="2">2 niveles</option><option value="0">Solo tablas seleccionadas</option></select>
+                <label for="node-limit">Máximo de tablas visibles</label><select id="node-limit"><option>25</option><option>50</option><option>75</option></select>
+                <label class="check"><input id="include-disabled" type="checkbox"> Incluir FK deshabilitadas / no validadas</label>
+            </div>
+            <p class="scope-note">Solo se muestran relaciones declaradas en Oracle. Las tablas sin FK también están disponibles.</p>
+        </aside>
+        <section class="graph-section" aria-label="Diagrama de relaciones">
+            <div class="graph-toolbar"><div><button id="zoom-in" aria-label="Acercar diagrama">＋</button><button id="zoom-out" aria-label="Alejar diagrama">−</button><button id="fit-graph">Ajustar vista</button><button id="relayout">Ordenar</button></div><div><button id="export-png">Descargar PNG</button><button id="export-model">Descargar JSON</button></div></div>
+            <div class="graph-legend"><span><i class="legend-blue"></i> Tabla relacionada</span><span><i class="legend-gold"></i> Seleccionada</span><span>→ Hija a padre</span><span>··· FK no aplicada / no validada</span></div>
+            <div class="graph-canvas"><div id="mer-graph" aria-label="Modelo interactivo: usa el listado de tablas y relaciones para acceder también con teclado"></div><div id="graph-empty">Selecciona una tabla para comenzar.</div></div>
+            <p id="graph-status" class="graph-status" role="status">Cargando datos…</p>
+            <div id="mer-error" class="error" role="alert" hidden></div>
+        </section>
+        <aside class="mer-inspector">
+            <h2>Detalle del modelo</h2><p id="inspector-hint" class="muted">Selecciona una tabla o una conexión del diagrama.</p>
+            <div id="inspector"></div>
+            <details open><summary>Relaciones visibles <span id="edge-count">0</span></summary><div id="relation-list" class="relation-list"></div></details>
+            <details><summary>Tablas visibles</summary><div id="visible-tables" class="relation-list"></div></details>
+        </aside>
+    </main>
+    <script src="assets/vendor/cytoscape.min.js"></script>
+    <script src="assets/vendor/elk.bundled.js"></script>
+    <script src="assets/dictionary_core.js?v=20261002"></script>
+    <script src="assets/mer_model.js?v=20261002"></script>
+    <script src="assets/mer.js?v=20261002"></script>
+</body>
+</html>

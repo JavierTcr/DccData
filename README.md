@@ -84,7 +84,27 @@ Se exportan tablas, columnas, restricciones e índices, conservando las cabecera
 
 Los archivos `backup`, `simple`, las páginas de depuración y `templates/index.html` se conservan como referencias históricas; no son entradas del servidor local soportado.
 
-## Verificación
+## Modelo entidad-relación
+
+Abrir **Modelo entidad-relación** en la navegación de cualquiera de los visores o ir a `http://127.0.0.1:8000/mer.html`. En el visor de selección masiva, las tablas marcadas se transfieren al MER mediante sessionStorage del mismo origen. Sin selección inicial, se abre un ejemplo centrado en DEMANDA.
+
+El módulo usa el mismo snapshot publicado; no abre nuevas conexiones Oracle. Muestra relaciones físicas declaradas, no relaciones inferidas por nombres o reglas de negocio.
+
+- Buscar y agregar/quitar tablas; las seleccionadas aparecen en dorado.
+- Elegir relaciones directas, dos niveles o solo las seleccionadas.
+- Limitar la vista a 25, 50 o 75 tablas. Se indica explícitamente cuando queda una vista parcial.
+- Ampliar relaciones desde el detalle de una tabla; pulsar una conexión para ver la FK y el mapeo de columnas.
+- Ver la estructura completa con el mismo diálogo del diccionario y descargarla en CSV.
+- Acercar, alejar, desplazar, ajustar y ordenar automáticamente el modelo.
+- Descargar el diagrama visible como PNG o su modelo, posiciones y cobertura como JSON.
+
+Las flechas van de la tabla hija a la padre. Los extremos se etiquetan con `0..1`, `1` y `0..N`, derivados de nulabilidad y unicidad declaradas, no de conteos de registros. Las FK habilitadas y validadas se muestran por defecto. Las deshabilitadas/no validadas se pueden incluir como líneas discontinuas, sin afirmar que su relación esté garantizada.
+
+Las tablas sin FK o sin PK declarada se conservan como tales. Se soportan relaciones múltiples, compuestas, autorreferencias y destinos fuera del conjunto publicado; estos últimos aparecen como nodos externos sin estructura local. No se intenta representar todas las tablas con sus columnas a la vez.
+
+Cytoscape.js y ELK se sirven localmente, con versiones fijadas y licencias en `assets/vendor`. Reiniciar el servidor tras incorporar el módulo para que reconozca los nuevos archivos públicos. La validación incluye el grafo de las 790 FK actuales, cardinalidades, conexiones múltiples, límites de cobertura, disposición ELK y navegación DOM con Cytoscape en modo headless. No sustituye una prueba visual en un navegador real.
+
+## Verificación del proyecto
 
 ```powershell
 node tests/dictionary.test.js
