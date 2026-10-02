@@ -152,6 +152,7 @@ class DiccionarioDatos {
     }
 
     showSection(section) {
+        document.body.dataset.section = section;
         // Ocultar todas las secciones
         document.querySelectorAll('.content-section').forEach(el => {
             el.style.display = 'none';

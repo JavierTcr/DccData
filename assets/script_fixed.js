@@ -332,6 +332,7 @@ class DiccionarioDatos {
     }
 
     showSection(section) {
+        document.body.dataset.section = section;
         console.log(`Mostrando sección: ${section}`);
         
         // Ocultar todas las secciones

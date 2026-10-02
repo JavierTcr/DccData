@@ -112,7 +112,7 @@
         const excluded = document.getElementById('excluded-tables');
         if (excluded) excluded.textContent = manifest.excluded_tables ?? 'No disponible';
         const summary = document.getElementById('snapshot-description');
-        if (summary) summary.textContent = `Diccionario del esquema ${manifest.schema}: ${data.tablas.length} tablas incluidas en la extracción.`;
+        if (summary) summary.textContent = `Diccionario SPE–APE · Esquema ${manifest.schema}: ${data.tablas.length} tablas incluidas en la extracción.`;
     }
     function structureMarkup(tableName, rows) {
         return html`

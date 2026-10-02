@@ -88,7 +88,7 @@ class DictionaryTests(unittest.TestCase):
         thread.start()
         base = f'http://127.0.0.1:{server.server_port}'
         try:
-            for path in ('/', '/diccionario_viewer.html', '/assets/dictionary_core.js?v=20261001c', '/assets/dictionary_details.css?v=20261001c', '/data/manifest.json', '/mer.html', '/assets/mer.js', '/assets/mer_model.js', '/assets/mer.css', '/assets/vendor/cytoscape.min.js', '/assets/vendor/elk.bundled.js'):
+            for path in ('/', '/diccionario_viewer.html', '/assets/dictionary_core.js?v=20261001c', '/assets/dictionary_details.css?v=20261001c', '/data/manifest.json', '/mer.html', '/assets/mer.js', '/assets/mer_model.js', '/assets/mer.css', '/assets/ape_brand.css?v=20261002', '/assets/ape-logo.svg', '/assets/vendor/cytoscape.min.js', '/assets/vendor/elk.bundled.js'):
                 with urlopen(base + path, timeout=5) as response:
                     self.assertEqual(response.status, 200)
                     self.assertEqual(response.headers['X-Content-Type-Options'], 'nosniff')

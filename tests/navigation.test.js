@@ -26,6 +26,22 @@ for (const [htmlFile, scriptFile, mass] of [
     app.data = data;
     app.filteredData = {...data};
     if (!mass) app.createOptimizedIndexes();
+    // The summary stays centered; long sections must start beside the navigation.
+    const brandStyle = win.document.createElement('style');
+    brandStyle.textContent = fs.readFileSync('assets/ape_brand.css', 'utf8');
+    win.document.head.appendChild(brandStyle);
+    const loadSectionData = app.loadSectionData;
+    app.loadSectionData = () => {};
+    for (const section of ['resumen', 'tablas', 'columnas', 'restricciones', 'indices', 'resumen']) {
+        app.showSection(section);
+        const alignment = section === 'resumen' ? 'center' : 'flex-start';
+        for (const selector of ['.dictionary-shell', '.dictionary-shell > .row']) {
+            assert.equal(win.getComputedStyle(win.document.querySelector(selector)).alignItems, alignment,
+                `${htmlFile}: ${section} must place navigation at the correct height`);
+        }
+        assert.equal(win.document.getElementById(`${section}-section`).style.display, 'block');
+    }
+    app.loadSectionData = loadSectionData;
     const table = data.tablas.find(row => row.TABLA === 'DEMANDA') || data.tablas[0];
     const expected = data.columnas.filter(row => row.TABLA === table.TABLA).length;
     app.renderTablasTable([table]);

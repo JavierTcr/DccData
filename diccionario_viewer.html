@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diccionario de Datos - Esquema SPE</title>
+    <title>Diccionario de Datos SPE–APE · Agencia Pública de Empleo</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha384-3B6NwesSXE7YJlcLI9RpRqGf2p/EgVH8BgoKTaUrmKNDkHPStTQ3EyoYjCGXaOTS" crossorigin="anonymous" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" rel="stylesheet">
     <link href="assets/dictionary_details.css?v=20261001c" rel="stylesheet">
@@ -316,14 +316,15 @@
             .stats-card, .export-buttons .btn-export { transition: none; }
         }
     </style>
+    <link href="assets/ape_brand.css?v=20261002" rel="stylesheet">
 </head>
-<body>
+<body class="dictionary-page" data-section="resumen">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-database"></i>
-                Diccionario de Datos SPE
+            <a class="navbar-brand ape-brand" href="#" aria-label="Diccionario de Datos SPE–APE, Agencia Pública de Empleo">
+                <span class="ape-logo-panel"><img class="ape-logo" src="assets/ape-logo.svg" alt="SENA · Agencia Pública de Empleo" width="202" height="49"></span>
+                <span class="ape-brand-copy"><span>Diccionario de Datos SPE–APE</span><small>Agencia Pública de Empleo</small></span>
             </a>
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text">
@@ -334,7 +335,7 @@
         </div>
     </nav>
 
-    <div class="container-fluid mt-4">
+    <div class="container-fluid dictionary-shell">
         <div class="row">
             <!-- Sidebar -->
             <div class="col-lg-3 col-md-4">
@@ -383,7 +384,7 @@
                 <!-- Resumen Section -->
                 <div id="resumen-section" class="content-section">
                     <div class="info-box">
-                        <h4><i class="fas fa-info-circle"></i> Esquema SPE - Sistema de Información</h4>
+                        <h4><i class="fas fa-info-circle"></i> SPE–APE · Agencia Pública de Empleo</h4>
                         <p id="snapshot-description">Cargando información del diccionario...</p>
                     </div>
 

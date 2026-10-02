@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parent
 PUBLIC_FILES = {
     'index.html', 'diccionario_viewer.html', 'diccionario_viewer.js',
     'assets/styles.css', 'assets/script_fixed.js', 'assets/dictionary_core.js', 'assets/dictionary_details.css',
-    'data/manifest.json',
+    'data/manifest.json', 'assets/ape-logo.svg', 'assets/ape_brand.css',
     'mer.html', 'assets/mer.css', 'assets/mer.js', 'assets/mer_model.js',
     'assets/vendor/cytoscape.min.js', 'assets/vendor/elk.bundled.js',
 }

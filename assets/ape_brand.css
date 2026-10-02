@@ -1,0 +1,71 @@
+/* SPE remains the technical schema. SPE–APE identifies the dictionary. */
+:root {
+    --ape-blue: #2f62a5;
+    --ape-blue-dark: #224878;
+    --ape-blue-light: #eaf1fa;
+    --primary-color: #224878;
+    --secondary-color: #2f62a5;
+}
+body.dictionary-page { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; }
+.dictionary-page .navbar, .mer-page .mer-header {
+    background: linear-gradient(115deg, var(--ape-blue-dark), var(--ape-blue));
+    flex-shrink: 0;
+}
+.dictionary-page .navbar > .container-fluid { gap: 16px; }
+.ape-brand { display: flex; align-items: center; gap: 18px; white-space: normal; }
+.ape-logo-panel { display: inline-flex; align-items: center; justify-content: center; background: #fff; padding: 10px 14px; border-radius: 8px; flex-shrink: 0; }
+.ape-logo { display: block; width: 202px; max-width: 100%; height: auto; }
+.ape-brand-copy { display: flex; flex-direction: column; line-height: 1.3; }
+.ape-brand-copy > span { font-size: 1.25rem; font-weight: 700; }
+.ape-brand-copy small { font-size: .85rem; font-weight: 400; color: #e5eefb; margin-top: 4px; }
+.dictionary-page .navbar-text { color: #e5eefb; font-size: .875rem; }
+.dictionary-page .dictionary-shell {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    max-width: 1800px;
+    padding: 28px 24px;
+    margin-inline: auto;
+}
+.dictionary-shell > .row { width: 100%; align-items: flex-start; }
+.dictionary-page[data-section="resumen"] .dictionary-shell,
+.dictionary-page[data-section="resumen"] .dictionary-shell > .row { align-items: center; }
+.dictionary-shell .sidebar { position: static; margin-bottom: 0; }
+@media (min-width: 768px) {
+    .dictionary-page:not([data-section="resumen"]) .dictionary-shell > .row > :first-child { align-self: stretch; }
+    .dictionary-page:not([data-section="resumen"]) .dictionary-shell .sidebar {
+        position: sticky;
+        top: 20px;
+        max-height: calc(100vh - 40px);
+        max-height: calc(100svh - 40px);
+        overflow-y: auto;
+    }
+}
+.dictionary-shell #resumen-section > .row { row-gap: 16px; }
+.dictionary-shell #resumen-section .stats-card { margin-bottom: 0; }
+.dictionary-page .info-box { background: linear-gradient(115deg, var(--ape-blue-dark), var(--ape-blue)); }
+.dictionary-page .stats-card { color: var(--ape-blue-dark); border-top-color: var(--ape-blue); }
+.dictionary-page .stats-card i { color: var(--ape-blue); background: var(--ape-blue-light); }
+.dictionary-page .export-buttons .btn-primary { background: var(--ape-blue); border-color: var(--ape-blue); }
+.dictionary-page .export-buttons .btn-primary:hover:not(:disabled) { background: var(--ape-blue-dark); border-color: var(--ape-blue-dark); }
+.dictionary-page .export-buttons .btn-info { background: var(--ape-blue-light); color: var(--ape-blue-dark); }
+.dictionary-page .sidebar .nav-link.active, .dictionary-page .sidebar .nav-link:hover { background: var(--ape-blue); }
+.structure-header { background: linear-gradient(115deg, var(--ape-blue-dark), var(--ape-blue)); }
+.mer-page .mer-header { flex-wrap: wrap; gap: 16px; }
+@media (max-width: 767px) {
+    .dictionary-page .dictionary-shell { padding: 20px 12px; }
+    .dictionary-shell > .row { row-gap: 20px; }
+    .dictionary-shell .sidebar { padding: 16px; }
+    .ape-brand { gap: 10px; }
+    .ape-logo-panel { padding: 8px 10px; }
+    .ape-logo { width: 150px; }
+    .ape-brand-copy > span { font-size: 1rem; }
+    .ape-brand-copy small { font-size: .75rem; }
+    .dictionary-page .navbar > .container-fluid { justify-content: center; padding-block: 8px; }
+    .dictionary-page .navbar-nav { width: 100%; text-align: center; margin-left: 0 !important; }
+}
+@media (max-width: 420px) {
+    .ape-brand { flex-direction: column; text-align: center; }
+}
